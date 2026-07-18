@@ -1,0 +1,2797 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#f7efe2">
+<title>小窝 · 记忆</title>
+<style>
+/* ---------- Design tokens ---------- */
+:root{
+  /* palette */
+  --bg:          #f7efe2;
+  --ink:         #332a1f;
+  --ink-76:      rgba(51,42,31,.76);
+  --ink-70:      rgba(51,42,31,.70);
+  --ink-60:      rgba(51,42,31,.60);
+  --ink-50:      rgba(51,42,31,.50);
+  --ink-45:      rgba(51,42,31,.45);
+  --ink-42:      rgba(51,42,31,.42);
+  --ink-40:      rgba(51,42,31,.40);
+  --ink-35:      rgba(51,42,31,.35);
+  --ink-15:      rgba(51,42,31,.15);
+  --ink-10:      rgba(51,42,31,.10);
+  --ink-08:      rgba(51,42,31,.08);
+  --card:        #fcf7ed;
+  --sheet-bg:    rgba(252,247,237,.97);
+  --white-32:    rgba(255,255,255,.32);
+  --white-33:    rgba(255,255,255,.33);
+  --white-46:    rgba(255,255,255,.46);
+  --white-53:    rgba(255,255,255,.53);
+  --white-65:    rgba(255,255,255,.65);
+  --white-68:    rgba(255,255,255,.68);
+  --accent:      #cd7c46;
+  --accent-warm: #b56534;
+  --accent-dim:  #966746;
+  --danger:      #c45b4e;
+  --line-gray:   #a8b193;      /* line + dot 同色（灰绿） */
+  --line-gray-t: rgba(168,177,147,.5); /* 稍浅一点用于线 */
+  --accent-2:      #87966c;    /* 鼠尾草绿：第二声部 */
+  --accent-2-deep: #6a7852;    /* 鼠尾草深：小字文本用 */
+  /* 情绪色谱：同一暖色家族的 8 个低饱和声部 */
+  --emo-1: #7a8a5e;  /* 平静 */
+  --emo-2: #c67139;  /* 好奇 */
+  --emo-3: #9a6a86;  /* 思念 */
+  --emo-4: #c45b4e;  /* 心疼 */
+  --emo-5: #b56534;  /* 占有 */
+  --emo-6: #c39a44;  /* 得意 */
+  --emo-7: #b0503f;  /* 欲望 */
+  --emo-8: #8a8578;  /* 无力 */
+
+  /* radii */
+  --r-xs: 6px;
+  --r-sm: 8px;
+  --r-md: 11px;
+  --r-lg: 14px;
+  --r-xl: 18px;
+  --r-2xl: 22px;
+  --r-3xl: 27px;
+
+  /* spacing */
+  --pad-x: 18px;
+  --tab-h: 69px;
+
+  /* type ——全页仅三档字号 + 一档点线区弱字号 */
+  --fs-xs: 7px;    /* 第四档：点线图日期/标题，斜体弱重心专用 */
+  --fs-sm: 9px;    /* 最小：灰色英文 meta / 标签 */
+  --fs-md: 12px;   /* 中号：记忆正文 */
+  --fs-lg: 14px;   /* 最大：记忆点标题 */
+  --fs-xl: 30px;   /* 概览大数字专用 */
+  --font-num: "SF Pro Display", "PingFang SC", var(--font-sans);
+  --font-sans: -apple-system, "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", system-ui, sans-serif;
+
+  /* effects */
+  --glass-blur: blur(22px) saturate(115%);
+  --shadow-card: inset 0 1px var(--white-65), 0 12px 28px rgba(80,69,55,.055);
+}
+
+/* ---------- Reset & base ---------- */
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none !important}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--font-sans);
+  font-size:var(--fs-md);
+  line-height:1.5;
+  min-height:100dvh;
+  -webkit-font-smoothing:antialiased;
+  overscroll-behavior-y:none;
+}
+button,input,textarea{font:inherit;color:inherit;-webkit-tap-highlight-color:transparent}
+button{background:none;border:0;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+input,textarea{-webkit-appearance:none;appearance:none;background:none;border:0;outline:0}
+/* 统一所有文本框弱提示颜色 */
+input::placeholder,textarea::placeholder{color:var(--ink-35);opacity:1}
+
+/* press feedback */
+.tap{transition:transform .18s ease, opacity .18s ease, background-color .18s ease}
+.tap:active{transform:scale(.97);opacity:.85}
+
+.glass{
+  border:1px solid var(--white-68);
+  background:var(--white-32);
+  box-shadow:var(--shadow-card);
+  -webkit-backdrop-filter:var(--glass-blur);
+  backdrop-filter:var(--glass-blur);
+}
+.mono-label{
+  font-size:var(--fs-sm);
+  letter-spacing:.14em;
+  color:var(--ink-42);
+  margin:0;
+  text-transform:uppercase;
+  font-weight:500;
+}
+
+/* ---------- App shell ---------- */
+.app{
+  position:relative;
+  min-height:100dvh;
+  padding:
+    calc(env(safe-area-inset-top) + 15px)
+    var(--pad-x)
+    calc(env(safe-area-inset-bottom) + var(--tab-h) + 36px);
+  background:
+    /* 极淡纸张纹理 —— 一点点即可 */
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E") repeat 0 0 / 160px 160px,
+    radial-gradient(circle at 18% 6%, rgba(255,255,255,.86), transparent 28%),
+    radial-gradient(circle at 92% 12%, rgba(205,124,70,.06), transparent 38%),
+    radial-gradient(circle at 8% 86%, rgba(122,138,94,.08), transparent 42%),
+    var(--bg);
+  overflow-x:hidden;
+}
+
+/* ---------- Top：仅左上菜单按钮固定，标题随页面滚动 ---------- */
+.menu-btn{
+  position:fixed;
+  z-index:30;
+  left:max(var(--pad-x), env(safe-area-inset-left));
+  top:max(15px, env(safe-area-inset-top));
+  width:42px;height:42px;
+  border-radius:var(--r-lg);
+  display:grid;place-content:center;gap:4px;
+}
+.menu-btn i{display:block;width:17px;height:1.5px;border-radius:3px;background:#3d3226}
+
+.intro-line{
+  height:42px;
+  display:grid;place-items:center;
+  margin-bottom:38px;
+}
+.intro-line p{
+  margin:0;
+  font-size:var(--fs-sm);
+  letter-spacing:.18em;
+  color:var(--ink-50);
+  font-weight:500;
+}
+
+/* ---------- Archive page ---------- */
+.block{margin-bottom:31px}
+.block:last-of-type{margin-bottom:0}
+
+.section-label{margin:0 0 12px}   /* 与 02、03 完全左对齐 */
+.section-label > p{margin:0}
+.point-label{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:8px;margin:0 0 10px;
+}
+.point-label span{
+  white-space:nowrap;
+  font-size:var(--fs-sm);letter-spacing:.06em;color:var(--ink-40);
+}
+
+/* --- Archive 概览三块（上半：数量总览；轻边框，点击态改字色不填底） --- */
+.ov-row{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:11px;
+  margin:8px 0 40px;
+}
+.ov-card{
+  text-align:left;
+  border:1px solid var(--ink-10);
+  background:transparent;
+  border-radius:var(--r-lg);
+  padding:17px 14px 15px;
+  min-height:150px;
+  display:flex;flex-direction:column;
+  transition:transform .18s ease, border-color .25s ease, color .25s ease;
+}
+.ov-card:active{transform:scale(.98)}
+.ov-idx{
+  font-size:var(--fs-sm);letter-spacing:.16em;
+  color:var(--ink-35);
+}
+.ov-num{
+  font-family:var(--font-num);
+  font-size:var(--fs-xl);font-weight:400;line-height:1;
+  letter-spacing:.01em;
+  color:var(--ink-60);
+  margin:auto 0 7px;
+}
+.ov-name{
+  font-size:var(--fs-sm);letter-spacing:.2em;
+  text-transform:uppercase;
+  color:var(--ink-45);
+}
+.ov-sub{
+  font-size:var(--fs-sm);letter-spacing:.1em;
+  color:var(--ink-35);
+  margin-top:5px;
+}
+.ov-card.on{border-color:rgba(205,124,70,.45)}
+.ov-card.on .ov-idx{color:var(--accent-dim)}
+.ov-card.on .ov-num{color:var(--accent-warm)}
+.ov-card.on .ov-name{color:var(--accent-warm)}
+.ov-card.on .ov-sub{color:var(--accent-dim)}
+
+/* --- 01 Memory Surface --- */
+.face-row{
+  display:flex;
+  gap:10px;
+  overflow-x:auto;
+  overflow-y:hidden;
+  padding:2px 0 6px;
+  scrollbar-width:none;
+  -webkit-overflow-scrolling:touch;
+  scroll-snap-type:x proximity;
+}
+.face-row::-webkit-scrollbar{display:none}
+.face-card{
+  flex:0 0 min(72vw, 280px);
+  height:130px;
+  border:1px solid var(--white-68);
+  border-radius:var(--r-xl);
+  padding:16px 17px;
+  text-align:left;
+  background:var(--white-33);
+  color:var(--ink-70);
+  font-size:var(--fs-md);
+  line-height:1.85;
+  scroll-snap-align:start;
+  -webkit-backdrop-filter:var(--glass-blur);
+  backdrop-filter:var(--glass-blur);
+  /* 溢出用 … 截断 */
+  overflow:hidden;
+  display:-webkit-box;
+  -webkit-line-clamp:4;
+  -webkit-box-orient:vertical;
+  text-overflow:ellipsis;
+}
+.face-add{
+  flex:0 0 38px;
+  width:38px;height:38px;
+  align-self:center;
+  border-radius:50%;
+  background:var(--ink);
+  color:var(--bg);
+  font-size:18px;
+  line-height:1;
+  display:grid;place-items:center;
+  margin-right:4px;
+}
+
+/* --- 02 Memory Lines --- */
+.line-group{margin-bottom:22px}
+.line-group:last-child{margin-bottom:0}
+.line-group-head{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:9px;
+}
+.line-group-head > span{font-size:var(--fs-md);font-weight:600;color:var(--ink-70)}
+
+.memory-line-card{
+  position:relative;
+  padding:14px 15px;
+  margin-bottom:9px;
+  border-radius:var(--r-xl);
+  background:rgba(255,255,255,.28);
+  border:1px solid rgba(255,255,255,.70);
+  -webkit-backdrop-filter:var(--glass-blur);
+  backdrop-filter:var(--glass-blur);
+}
+.memory-line-card:last-child{margin-bottom:0}
+.line-summary-btn{
+  display:block;width:100%;text-align:left;
+  border-radius:8px;
+  padding:2px 2px 4px;
+  margin:0 -2px;
+}
+.line-arr-btn{
+  font-size:var(--fs-sm);letter-spacing:.11em;
+  color:var(--ink-40);
+  padding:5px 0 5px 14px;margin:-5px 0;
+  white-space:nowrap;
+}
+.line-arr-btn.on{color:var(--accent-warm);font-weight:600}
+/* 卡片头行：左 meta，右升/降格小按钮（与 meta 同字重，不抢戏） */
+.line-head{
+  display:flex;align-items:baseline;justify-content:space-between;gap:8px;
+  margin-bottom:5px;
+}
+.line-meta-txt{
+  min-width:0;
+  font-size:var(--fs-sm);letter-spacing:.07em;color:var(--ink-42);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.line-shift{
+  flex:none;
+  font-size:var(--fs-sm);letter-spacing:.08em;
+  color:var(--accent-dim);
+  padding:5px 0 5px 12px;margin:-5px 0;
+  white-space:nowrap;
+}
+.line-shift:active{color:var(--accent-warm)}
+/* 展开 / 收起（近期线折叠） */
+.line-more{
+  display:block;width:100%;
+  margin-top:10px;padding:8px 0;
+  text-align:center;
+  font-size:var(--fs-sm);letter-spacing:.11em;
+  color:var(--ink-40);
+}
+/* 编排态：卡片收起点线，变紧凑单行 + 右侧 ↑↓ */
+.memory-line-card.arranging{
+  display:flex;align-items:center;gap:12px;
+  padding:11px 12px 11px 15px;
+  border-color:rgba(205,124,70,.32);
+}
+.arr-main{flex:1;min-width:0}
+.arr-main .line-meta-txt{display:block;margin-bottom:3px}
+.arr-summary{
+  margin:0;
+  font-size:var(--fs-md);line-height:1.5;color:var(--ink-70);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.arr-ctrl{flex:none;display:flex;gap:7px}
+.arr-btn{
+  width:31px;height:31px;border-radius:50%;
+  border:1px solid var(--ink-15);
+  background:var(--white-33);
+  display:grid;place-items:center;
+  color:var(--ink-60);
+}
+.arr-btn svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.arr-btn:disabled{opacity:.28}
+.line-summary{
+  display:-webkit-box;
+  -webkit-line-clamp:3;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  margin:0;
+  font-size:var(--fs-md);line-height:1.75;
+  color:var(--ink-70);
+}
+
+/* dots row: 节点定宽（4 个汉字宽），节点之间是定长连接段：
+   连接段基准长 = (容器宽 - 4 个节点) / 3 → 一屏恰好完整露出 4 个节点；
+   少于 4 个时连接段等比拉伸摊满，首末始终与上方文字左右贴边；
+   多于 4 个时保持步长溢出横滑，两侧渐隐。
+   线 = 连接段自身 + 节点内左右半段，无缝拼成一条完整线。
+   整块整体降透明度 + 第四档斜体小字，做视觉弱重心。 */
+.line-dots{
+  display:flex;
+  margin-top:14px;
+  overflow-x:auto;
+  overflow-y:hidden;
+  scrollbar-width:none;
+  -webkit-overflow-scrolling:touch;
+  opacity:.85;                    /* 字、点、线同步弱化 */
+}
+.line-dots::-webkit-scrollbar{display:none}
+/* 渐隐按滚动位置动态出现：
+   左侧渐隐仅在开始滑动后出现（起始位置首节点完整清晰）；
+   右侧渐隐在还有后续内容时出现，滑到底自动消失。 */
+.line-dots.fade-l{
+  -webkit-mask-image:linear-gradient(to right, transparent, #000 16px);
+  mask-image:linear-gradient(to right, transparent, #000 16px);
+}
+.line-dots.fade-r{
+  -webkit-mask-image:linear-gradient(to left, transparent, #000 16px);
+  mask-image:linear-gradient(to left, transparent, #000 16px);
+}
+.line-dots.fade-l.fade-r{
+  -webkit-mask-image:linear-gradient(to right, transparent, #000 16px, #000 calc(100% - 16px), transparent);
+  mask-image:linear-gradient(to right, transparent, #000 16px, #000 calc(100% - 16px), transparent);
+}
+.ld-node{
+  flex:0 0 4.5em;                 /* 节点定宽：一行恰好 4 个汉字 */
+  font-size:var(--fs-xs);
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  justify-items:center;
+  row-gap:6px;
+  align-content:start;
+}
+.ld-conn{
+  flex:1 0 calc((100% - 18em)/3); /* 4 节点恰好填满一屏的步长 */
+  font-size:var(--fs-xs);
+  position:relative;
+  pointer-events:none;
+}
+.ld-conn::before{
+  content:'';
+  position:absolute;left:0;right:0;
+  top:18px;                        /* 日期行 7px + 间距 6px + 点半径 5px */
+  border-top:1px solid var(--line-gray-t);
+}
+.ld-date{
+  font-size:var(--fs-xs);
+  font-style:italic;
+  letter-spacing:.05em;color:var(--ink-42);
+  line-height:1;white-space:nowrap;
+  min-height:7px;
+}
+.ld-dotrow{
+  position:relative;
+  width:100%;height:10px;
+  display:grid;place-items:center;
+}
+.ld-dotrow::before{
+  content:'';
+  position:absolute;left:0;right:0;top:50%;
+  border-top:1px solid var(--line-gray-t);
+}
+.ld-node:first-child .ld-dotrow::before{left:50%}
+.ld-node:last-child .ld-dotrow::before{right:50%}
+.ld-dotrow i{
+  position:relative;z-index:1;
+  width:10px;height:10px;border-radius:50%;
+  background:var(--line-gray);
+}
+.ld-label{
+  max-width:4.5em;                /* 一行恰好 4 个汉字，8 字成两行 */
+  font-size:var(--fs-xs);
+  font-style:italic;
+  line-height:1.35;letter-spacing:0;
+  color:var(--ink-60);
+  text-align:center;
+  word-break:break-all;
+  display:-webkit-box;
+  -webkit-line-clamp:2;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+}
+/* 点线末端：虚线圆 + 号 = 收录入口（延续弱重心语言） */
+.ld-addnode .ld-dotrow i{
+  background:transparent;
+  border:1px dashed var(--line-gray);
+  width:11px;height:11px;
+  position:relative;
+}
+.ld-addnode .ld-dotrow i::before,
+.ld-addnode .ld-dotrow i::after{
+  content:'';
+  position:absolute;left:50%;top:50%;
+  background:var(--line-gray);
+  transform:translate(-50%,-50%);
+}
+.ld-addnode .ld-dotrow i::before{width:5px;height:1px}
+.ld-addnode .ld-dotrow i::after{width:1px;height:5px}
+.ld-addnode .ld-label{color:var(--ink-42)}
+
+/* --- 03 Memory Points --- */
+.add-memory-ghost{
+  display:block;width:100%;
+  margin:2px 0 10px;
+  padding:5px 0;
+  font-size:var(--fs-sm);letter-spacing:.09em;
+  color:var(--ink-35);
+  text-align:left;
+}
+.memory-search{
+  display:flex;align-items:center;gap:8px;
+  height:36px;
+  margin-bottom:8px;
+  padding:0 5px 0 11px;
+  border:1px solid var(--ink-10);
+  border-radius:var(--r-md);
+  background:var(--white-33);
+}
+.memory-search input{
+  flex:1;min-width:0;
+  font-size:var(--fs-sm);letter-spacing:.06em;
+  color:#3d3226;
+}
+.memory-search input::placeholder{color:var(--ink-35)}
+.search-go{
+  flex:0 0 28px;
+  width:28px;height:28px;
+  border-radius:var(--r-sm);
+  display:grid;place-items:center;
+  background:rgba(51,42,31,.05);
+}
+.search-go svg{width:13px;height:13px;stroke:var(--ink-45);fill:none;stroke-width:1.6;stroke-linecap:round}
+
+/* 星级 / 排序 / 时间 同一行 */
+.point-tools{
+  display:flex;gap:6px;
+  margin-bottom:8px;
+}
+.point-tools button{
+  flex:1 1 0;
+  border:1px solid var(--ink-10);
+  border-radius:var(--r-sm);
+  padding:7px 6px;
+  background:var(--white-33);
+  font-size:var(--fs-sm);letter-spacing:.07em;
+  white-space:nowrap;color:var(--ink-60);
+  overflow:hidden;text-overflow:ellipsis;
+}
+.point-tools button.date{color:var(--accent-dim)}
+.point-tools button.star-open{
+  border-color:#d9a678;color:var(--accent-warm);
+  background:rgba(205,124,70,.11);
+}
+.star-filter{
+  display:flex;gap:5px;
+  overflow-x:auto;overflow-y:hidden;
+  padding:2px 0 8px;
+  scrollbar-width:none;
+}
+.star-filter::-webkit-scrollbar{display:none}
+.star-filter button{
+  flex:none;
+  border:1px solid var(--ink-10);
+  border-radius:var(--r-sm);
+  background:var(--white-33);
+  padding:7px 10px;
+  color:var(--ink-45);
+  font-size:var(--fs-sm);
+  white-space:nowrap;
+}
+.star-filter button.on{
+  border-color:#d9a678;
+  color:var(--accent-warm);
+  background:rgba(205,124,70,.11);
+}
+.point-list{display:grid;gap:9px;margin-top:2px}
+.point-card{
+  width:100%;
+  padding:14px 15px;
+  border:1px solid var(--white-68);
+  border-radius:var(--r-lg);
+  background:var(--white-33);
+  display:flex;align-items:flex-start;justify-content:space-between;
+  text-align:left;
+  gap:10px;
+  -webkit-backdrop-filter:var(--glass-blur);
+  backdrop-filter:var(--glass-blur);
+}
+.point-card-body{min-width:0;flex:1;overflow:hidden}
+.point-card-body span{
+  font-size:var(--fs-sm);letter-spacing:.05em;color:var(--accent-2-deep);
+}
+/* 记忆点唯一编号：灰色 mono 前缀，与绿色情绪 meta 形成层次 */
+.pt-no{font-style:normal;color:var(--ink-42)}
+.point-card-body h3{
+  margin:6px 0 5px;
+  font-size:var(--fs-lg);font-weight:500;color:var(--ink-76);
+}
+.point-card-body p{
+  margin:0;
+  font-size:var(--fs-md);line-height:1.65;color:rgba(51,42,31,.58);
+  overflow:hidden;
+  display:-webkit-box;
+  -webkit-line-clamp:2;
+  -webkit-box-orient:vertical;
+}
+.point-stars{
+  flex-shrink:0;align-self:flex-start;
+  margin:2px 0 0 0;
+  color:var(--accent-warm);
+  font-size:var(--fs-sm);letter-spacing:1px;
+  white-space:nowrap;
+  font-weight:400;
+}
+.point-stars em{font-style:normal;color:var(--ink-15)}
+.empty{
+  padding:28px 15px;
+  text-align:center;
+  font-size:var(--fs-md);color:var(--ink-40);
+}
+
+/* ---------- Side drawer ---------- */
+.scrim{
+  position:fixed;z-index:38;inset:0;
+  background:rgba(51,42,31,.19);
+  -webkit-backdrop-filter:blur(2px);
+  backdrop-filter:blur(2px);
+  opacity:0;pointer-events:none;
+  transition:opacity .28s ease;
+}
+.scrim.on{opacity:1;pointer-events:auto}
+.drawer{
+  position:fixed;z-index:39;
+  top:0;bottom:0;left:0;
+  width:min(82vw, 320px);
+  padding:calc(env(safe-area-inset-top) + 28px) 25px calc(env(safe-area-inset-bottom) + 35px);
+  background:rgba(251,246,235,.94);
+  border-right:1px solid rgba(255,255,255,.86);
+  box-shadow:18px 0 44px rgba(39,33,27,.14);
+  -webkit-backdrop-filter:blur(30px);
+  backdrop-filter:blur(30px);
+  transform:translateX(-103%);
+  transition:transform .35s cubic-bezier(.2,.8,.2,1);
+}
+.drawer.on{transform:translateX(0)}
+.drawer-head{
+  display:flex;justify-content:space-between;align-items:center;
+  padding-bottom:24px;
+  border-bottom:1px solid rgba(51,42,31,.09);
+}
+.drawer-head p{margin:0;font-size:var(--fs-sm);letter-spacing:.18em;color:var(--ink-50)}
+.drawer-close{width:32px;height:32px;font-size:24px;line-height:1;color:var(--ink-60)}
+.drawer-nav{display:grid;padding-top:14px}
+.drawer-nav button{
+  padding:18px 4px;
+  border-bottom:1px solid var(--ink-08);
+  display:flex;align-items:center;gap:16px;
+  text-align:left;
+  font-size:var(--fs-lg);letter-spacing:.05em;
+  line-height:1;
+  color:var(--ink-40);
+}
+.drawer-nav button span{
+  flex:0 0 20px;
+  font-size:var(--fs-sm);letter-spacing:.08em;
+  line-height:1;
+}
+.drawer-nav button.on{color:var(--ink);font-weight:600}
+/* ---------- Diary：热力日历（直接印在页面上，无卡片外框） ---------- */
+.dcal{
+  margin:2px 0 0;
+  padding:0;
+}
+.dcal-head{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:10px;
+}
+.dcal-head b{
+  font-size:var(--fs-md);letter-spacing:.12em;color:var(--ink-70);
+  font-weight:600;
+}
+.dcal-head button{
+  width:30px;height:30px;
+  font-size:18px;line-height:1;color:var(--ink-45);
+  border-radius:var(--r-sm);
+}
+.dcal-week{
+  display:grid;grid-template-columns:repeat(7,1fr);
+  margin-bottom:5px;
+}
+.dcal-week span{
+  text-align:center;
+  font-size:var(--fs-sm);letter-spacing:.05em;color:var(--ink-35);
+  padding:2px 0;
+}
+.dcal-grid{
+  display:grid;grid-template-columns:repeat(7,1fr);
+  gap:4px;
+}
+.dcal-grid > i{display:block}
+.dcal-day{
+  aspect-ratio:1;
+  border-radius:var(--r-xs);
+  border:1px solid transparent;
+  display:grid;place-content:center;justify-items:center;gap:2px;
+  font-size:var(--fs-sm);
+  color:var(--ink-50);
+}
+/* 热力：10 档，越深聊天轮次越多 */
+.dcal-day.lvl0{background:rgba(51,42,31,.035);color:var(--ink-35)}
+.dcal-day.lvl1{background:rgba(205,124,70,.09)}
+.dcal-day.lvl2{background:rgba(205,124,70,.17)}
+.dcal-day.lvl3{background:rgba(205,124,70,.26)}
+.dcal-day.lvl4{background:rgba(205,124,70,.36);color:var(--ink-70)}
+.dcal-day.lvl5{background:rgba(205,124,70,.47);color:var(--ink-76)}
+.dcal-day.lvl6{background:rgba(205,124,70,.60);color:var(--bg)}
+.dcal-day.lvl7{background:rgba(205,124,70,.72);color:var(--bg)}
+.dcal-day.lvl8{background:rgba(205,124,70,.85);color:var(--bg)}
+.dcal-day.lvl9{background:rgba(181,101,52,.97);color:var(--bg)}
+.dcal-day.today{box-shadow:0 0 0 1.5px var(--accent-warm)}
+.dcal-day i{                     /* 当天有日记的标记点 */
+  width:3px;height:3px;border-radius:50%;
+  background:currentColor;opacity:.8;
+}
+.dcal-legend{
+  display:flex;align-items:center;justify-content:flex-end;gap:7px;
+  margin-top:12px;
+}
+.dcal-legend span{
+  font-size:var(--fs-sm);letter-spacing:.09em;color:var(--ink-35);
+}
+/* 10 格无缝拼成像素渐变条 */
+.heatbar{
+  display:flex;
+  border-radius:99px;
+  overflow:hidden;
+  box-shadow:inset 0 0 0 1px var(--ink-08);
+}
+.heatbar i{width:11px;height:8px;display:block}
+.heatbar i:nth-child(1){background:rgba(205,124,70,.06)}
+.heatbar i:nth-child(2){background:rgba(205,124,70,.13)}
+.heatbar i:nth-child(3){background:rgba(205,124,70,.20)}
+.heatbar i:nth-child(4){background:rgba(205,124,70,.28)}
+.heatbar i:nth-child(5){background:rgba(205,124,70,.37)}
+.heatbar i:nth-child(6){background:rgba(205,124,70,.48)}
+.heatbar i:nth-child(7){background:rgba(205,124,70,.60)}
+.heatbar i:nth-child(8){background:rgba(205,124,70,.73)}
+.heatbar i:nth-child(9){background:rgba(205,124,70,.86)}
+.heatbar i:nth-child(10){background:rgba(181,101,52,.98)}
+
+/* ---------- Daily 模块：她的状态 / 他的情绪 ---------- */
+.mod-head{
+  display:flex;align-items:flex-end;justify-content:space-between;
+  gap:10px;margin:0 0 13px;
+}
+.mod-head .mono-label{margin:0 0 5px}
+.mod-title{font-size:var(--fs-lg);font-weight:600;color:var(--ink-76);line-height:1}
+.mod-upd{
+  font-size:var(--fs-xs);font-style:italic;letter-spacing:.05em;
+  color:var(--ink-35);white-space:nowrap;
+}
+
+/* 她的状态：不包卡片，直接印在页面上 */
+/* 周期状态条 + 经期操作同一行：状态在左，操作靠右 */
+.phase-row{
+  display:flex;align-items:center;flex-wrap:wrap;
+  gap:2px 0;
+  margin-bottom:10px;
+}
+.phase{display:flex;align-items:center;flex-wrap:wrap}
+.phase-opt{
+  font-size:var(--fs-sm);letter-spacing:.02em;color:var(--ink-40);
+  padding:4px 9px;white-space:nowrap;
+}
+.phase-opt:first-child{padding-left:0}
+.phase-opt.on{color:var(--accent-warm);font-weight:600}
+.phase-opt.on.period{color:var(--danger)}
+.phase-sep{flex:none;width:1px;height:9px;background:var(--ink-15)}
+/* 经期操作：极简文字按钮 */
+.her-ops{
+  margin-left:auto;
+  display:flex;gap:15px;
+}
+.her-ops button{
+  padding:4px 0;
+  font-size:var(--fs-sm);letter-spacing:.06em;
+  color:var(--ink-35);
+  white-space:nowrap;
+}
+.her-ops button:active{color:var(--ink-60)}
+/* 数据格：无底无框，仅内部十字 hairline，左列贴页边 */
+.her-stats{
+  display:grid;grid-template-columns:1fr 1fr;
+}
+.her-stat{padding:12px 14px 12px 0}
+.her-stat:nth-child(even){padding-left:16px}
+.her-stat:nth-child(odd){border-right:1px solid var(--ink-08)}
+.her-stat:nth-child(-n+2){border-bottom:1px solid var(--ink-08)}
+.her-stat .k{font-size:var(--fs-sm);letter-spacing:.05em;color:var(--ink-42)}
+.her-stat .v{
+  display:flex;align-items:baseline;gap:2px;
+  font-family:var(--font-num);font-size:var(--fs-lg);color:var(--ink-76);
+  margin-top:4px;
+}
+.her-stat .v small{font-size:var(--fs-sm);color:var(--ink-45)}
+
+/* 他的情绪 */
+.emo-list{display:grid;gap:15px}
+.emo-row{
+  display:grid;grid-template-columns:3.4em 1fr auto;
+  align-items:center;gap:10px;text-align:left;
+}
+.emo-name{font-size:var(--fs-md);color:var(--ink-70)}
+.emo-track{position:relative;height:7px;border-radius:99px;background:var(--ink-10)}
+.emo-fill{
+  position:absolute;left:0;top:0;bottom:0;border-radius:99px;
+  transition:width .7s cubic-bezier(.2,.8,.2,1);
+}
+.emo-init{
+  position:absolute;top:-3px;bottom:-3px;width:2px;border-radius:2px;
+  background:var(--ink-45);transform:translateX(-1px);
+}
+.emo-val{
+  align-self:center;
+  font-family:var(--font-num);font-size:var(--fs-md);
+  font-variant-numeric:tabular-nums;
+  color:var(--ink-70);line-height:1;
+}
+
+/* 日记条目卡（复用回显卡外观，可点击进入单篇） */
+.diary-entry{
+  display:block;width:100%;
+  text-align:left;
+  margin-bottom:10px;
+}
+.diary-entry:last-child{margin-bottom:0}
+.diary-entry p{
+  display:-webkit-box;
+  -webkit-line-clamp:3;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+}
+
+/* ---------- Bottom tab bar ---------- */
+.tabbar{
+  position:fixed;z-index:20;
+  bottom:max(14px, env(safe-area-inset-bottom));
+  left:50%;transform:translateX(-50%);
+  width:min(calc(100% - 36px), 500px);
+  height:var(--tab-h);
+  border-radius:var(--r-2xl);
+  display:grid;grid-template-columns:repeat(4,1fr);
+  padding:7px;
+  background:rgba(252,247,237,.72);
+  border:1px solid var(--white-68);
+  -webkit-backdrop-filter:blur(22px) saturate(120%);
+  backdrop-filter:blur(22px) saturate(120%);
+  box-shadow:0 12px 34px rgba(80,69,55,.10), inset 0 1px var(--white-65);
+}
+.tabbar button{
+  border-radius:16px;
+  color:var(--ink-42);
+  display:grid;justify-items:center;align-content:center;gap:4px;
+  font-size:var(--fs-sm);
+  transition:.25s ease;
+}
+.tabbar svg{
+  width:19px;height:19px;fill:none;stroke:currentColor;
+  stroke-width:1.65;stroke-linecap:round;stroke-linejoin:round;
+}
+.tabbar button.on{
+  background:var(--ink);color:var(--bg);
+  box-shadow:0 6px 17px rgba(51,42,31,.18);
+}
+
+/* ---------- Unified sheet ----------
+   弹窗常驻 90dvh 高，由 JS 通过 translateY 控制两档位（半屏/全高），
+   拖拽全程跟手，松手吸附 → 顺滑关键。 */
+.sheet-wrap{
+  position:fixed;z-index:50;inset:0;
+  display:grid;align-items:end;
+  background:rgba(51,42,31,.22);
+  -webkit-backdrop-filter:blur(3px);
+  backdrop-filter:blur(3px);
+  opacity:0;pointer-events:none;
+  transition:opacity .24s ease;
+}
+.sheet-wrap.on{opacity:1;pointer-events:auto}
+
+.sheet{
+  position:relative;
+  width:100%;
+  height:90dvh;
+  padding:12px 24px calc(env(safe-area-inset-bottom) + 18px);
+  border-radius:var(--r-3xl) var(--r-3xl) 0 0;
+  background:var(--sheet-bg);
+  box-shadow:0 -12px 34px rgba(27,23,18,.12);
+  transform:translateY(100%);
+  display:flex;flex-direction:column;
+  overflow:hidden;
+  will-change:transform;
+}
+.sheet.anim{transition:transform .32s cubic-bezier(.22,.9,.3,1)}
+
+.sheet-head{
+  flex:0 0 auto;
+  touch-action:none;   /* 头部区域交给 JS 拖拽 */
+}
+.sheet-handle{
+  display:block;width:36px;height:3px;
+  margin:2px auto 14px;
+  border-radius:3px;background:var(--ink-15);
+}
+.sheet-close{
+  position:absolute;top:10px;right:16px;
+  font-size:24px;line-height:1;color:var(--ink-60);
+  width:32px;height:32px;
+  z-index:2;
+}
+.sheet-actions{
+  display:flex;gap:8px;
+  margin-bottom:14px;
+}
+.sheet-actions:empty{margin-bottom:6px}
+.sheet-actions button{
+  padding:7px 12px;
+  border-radius:var(--r-sm);
+  background:rgba(51,42,31,.06);
+  font-size:var(--fs-sm);letter-spacing:.08em;color:var(--ink-70);
+}
+.sheet-actions button.danger{color:var(--danger)}
+
+.sheet-meta{
+  display:block;
+  font-size:var(--fs-sm);letter-spacing:.08em;color:var(--ink-45);
+}
+.sheet-title{
+  margin:8px 0 10px;
+  font-size:var(--fs-lg);font-weight:600;
+  padding-right:24px;
+}
+/* 随内容一起滚动的 meta（记忆线用） */
+.sheet-meta-scroll{margin-bottom:10px}
+
+.sheet-body-scroll{
+  flex:1 1 auto;
+  min-height:0;
+  overflow-y:auto;                 /* 始终可原生滚动，动量顺滑 */
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;     /* 内部滚到边界也不带动背景 */
+  padding-bottom:12px;
+  scrollbar-width:none;            /* 隐藏滚动条，避免灰条压在组件上 */
+}
+.sheet-body-scroll::-webkit-scrollbar{display:none}
+
+.sheet-preview{
+  margin:0;
+  font-size:var(--fs-md);line-height:1.9;
+  color:var(--ink-70);
+  white-space:pre-wrap;
+  word-break:break-word;
+}
+.sheet-editarea{
+  width:100%;
+  min-height:140px;
+  height:180px;
+  resize:none;
+  border-radius:var(--r-md);
+  padding:12px;
+  background:var(--white-46);
+  font-size:var(--fs-md);line-height:1.75;
+  color:var(--ink);
+  font-family:inherit;
+  word-break:break-word;
+}
+
+/* 记忆点编辑表单（顺序：情绪 → 重要度 → 标题 → 正文；排版紧凑） */
+.point-form{margin-bottom:2px}
+.pf-label{
+  font-size:var(--fs-sm);letter-spacing:.04em;color:var(--accent-2-deep);
+  margin:0 0 6px;
+}
+/* 情绪：单行纯文字，竖线分隔（分隔线与文字中线对齐） */
+.pf-chips{
+  display:flex;align-items:center;
+  margin-bottom:12px;
+  overflow-x:auto;overflow-y:hidden;
+  scrollbar-width:none;
+}
+.pf-chips::-webkit-scrollbar{display:none}
+.pf-chips button{
+  flex:none;
+  padding:5px 7px;
+  font-size:var(--fs-sm);letter-spacing:.04em;
+  line-height:1;
+  color:var(--ink-45);
+  white-space:nowrap;
+}
+.pf-chips button:first-child{padding-left:0}
+.pf-chips button.on{
+  color:var(--accent-warm);
+  font-weight:600;
+}
+.pf-chips .pf-sep{
+  flex:none;
+  width:1px;height:9px;
+  background:var(--ink-15);
+}
+/* 重要度：标签与星星同一行 */
+.pf-row{
+  display:flex;align-items:center;gap:10px;
+  margin-bottom:12px;
+}
+.pf-row .pf-label{margin:0}
+.pf-stars{display:flex;gap:6px;align-items:center}
+.pf-stars button{
+  font-size:15px;line-height:1;
+  padding:2px 3px;
+  color:var(--ink-15);
+}
+.pf-stars button.on{color:var(--accent-warm)}
+.pf-title{
+  width:100%;
+  padding:10px 12px;
+  border-radius:var(--r-md);
+  background:var(--white-46);
+  font-size:var(--fs-md);
+  color:var(--ink);
+  margin-bottom:12px;
+}
+.pf-title::placeholder{color:var(--ink-35);font-size:var(--fs-md)}
+
+/* 编辑态操作行：与日历弹窗同款 CANCEL / SAVE 小字，右对齐；
+   位置在内容流里：记忆点在正文之后；记忆线在梗概编辑栏之后、回显之前 */
+.sheet-edit-row{
+  display:flex;justify-content:flex-end;gap:20px;
+  margin:14px 0 4px;
+}
+.sheet-edit-row button{
+  font-size:var(--fs-sm);letter-spacing:.09em;color:var(--ink-60);
+  padding:6px 4px;
+}
+.sheet-edit-row .ok{color:var(--accent-warm);font-weight:600}
+
+/* echo (记忆线的记忆点回显：虚线圆角卡 + 箭头) */
+.sheet-echo{
+  margin-top:14px;
+}
+.echo-card{
+  border:1.5px dashed var(--ink-15);
+  border-radius:var(--r-lg);
+  padding:13px 15px;
+}
+.echo-card .echo-meta{
+  display:block;
+  font-size:var(--fs-sm);letter-spacing:.07em;color:var(--accent-2-deep);
+}
+.echo-card h4{
+  margin:7px 0 6px;
+  font-size:var(--fs-lg);font-weight:600;color:var(--ink-76);
+}
+.echo-card p{
+  margin:0;
+  font-size:var(--fs-md);line-height:1.75;color:rgba(51,42,31,.58);
+}
+.echo-arrow{
+  text-align:center;
+  color:var(--ink-35);
+  font-size:var(--fs-md);
+  padding:6px 0;
+  line-height:1;
+}
+
+/* --- 收录记忆点弹窗（linePicker） --- */
+.picker-target{
+  margin:2px 0 14px;
+  padding:2px 0 2px 11px;
+  border-left:2px solid var(--accent-2);
+  font-size:var(--fs-md);line-height:1.7;color:var(--ink-50);
+  display:-webkit-box;
+  -webkit-line-clamp:2;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+}
+.picker-search{
+  display:flex;align-items:center;gap:9px;
+  height:38px;
+  padding:0 12px;
+  border:1px solid var(--ink-10);
+  border-radius:var(--r-md);
+  background:var(--white-46);
+  margin-bottom:4px;
+}
+.picker-search svg{
+  flex:none;width:13px;height:13px;
+  stroke:var(--ink-40);fill:none;stroke-width:1.6;stroke-linecap:round;
+}
+.picker-search input{flex:1;min-width:0;font-size:var(--fs-md);color:var(--ink)}
+.picker-list{display:grid}
+.picker-item{
+  display:flex;align-items:center;gap:12px;
+  padding:11px 2px;
+  border-bottom:1px solid var(--ink-08);
+}
+.picker-item:last-child{border-bottom:0}
+.pi-main{flex:1;min-width:0}
+.pi-meta{
+  display:block;
+  font-size:var(--fs-sm);letter-spacing:.05em;color:var(--accent-2-deep);
+}
+.pi-title{
+  margin:3px 0 0;
+  font-size:var(--fs-md);color:var(--ink-70);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.picker-add{
+  flex:none;
+  width:30px;height:30px;border-radius:50%;
+  border:1px solid var(--ink-15);
+  display:grid;place-items:center;
+  color:var(--ink-45);
+  transition:background .25s ease, border-color .25s ease, color .25s ease, transform .18s ease;
+}
+.picker-add:active{transform:scale(.92)}
+.picker-add svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.picker-add.in{
+  background:rgba(122,138,94,.14);
+  border-color:rgba(122,138,94,.5);
+  color:var(--accent-2-deep);
+}
+
+/* ---------- Confirm dialog ---------- */
+.confirm-wrap{
+  position:fixed;z-index:55;inset:0;
+  display:grid;place-items:center;
+  padding:20px;
+  background:rgba(51,42,31,.3);
+  -webkit-backdrop-filter:blur(3px);
+  backdrop-filter:blur(3px);
+  opacity:0;pointer-events:none;
+  transition:opacity .22s ease;
+}
+.confirm-wrap.on{opacity:1;pointer-events:auto}
+.confirm-sheet{
+  width:min(100%, 340px);
+  padding:22px 22px 18px;
+  border-radius:20px;
+  background:var(--card);
+  box-shadow:0 18px 48px rgba(51,42,31,.20);
+}
+.confirm-sheet .q{margin:0 0 8px;font-size:var(--fs-lg);color:var(--ink-76)}
+.confirm-sheet .t{
+  display:block;margin:0;
+  font-size:var(--fs-md);font-weight:400;color:var(--ink-50);
+  line-height:1.6;
+  max-height:3.4em;overflow:hidden;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+}
+.confirm-sheet .row{
+  display:flex;justify-content:flex-end;gap:20px;
+  margin-top:20px;
+}
+.confirm-sheet .row button{
+  font-size:var(--fs-sm);letter-spacing:.09em;color:var(--ink-60);
+  padding:6px 4px;
+}
+.confirm-sheet .row .danger{color:var(--danger)}
+.confirm-sheet .row .ok{color:var(--accent-warm);font-weight:600}
+
+/* ---------- Calendar picker ---------- */
+.cal-wrap{
+  position:fixed;z-index:55;inset:0;
+  display:grid;place-items:center;
+  padding:20px;
+  background:rgba(51,42,31,.3);
+  -webkit-backdrop-filter:blur(3px);
+  backdrop-filter:blur(3px);
+  opacity:0;pointer-events:none;
+  transition:opacity .22s ease;
+}
+.cal-wrap.on{opacity:1;pointer-events:auto}
+.cal-sheet{
+  width:min(100%, 340px);
+  padding:20px 20px 16px;
+  border-radius:20px;
+  background:var(--card);
+  box-shadow:0 18px 48px rgba(51,42,31,.20);
+}
+.cal-purpose{
+  margin:0 0 12px;
+  text-align:center;
+  font-size:var(--fs-sm);letter-spacing:.14em;
+  color:var(--danger);
+}
+.cal-head{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:12px;
+}
+.cal-head b{
+  font-size:var(--fs-md);letter-spacing:.12em;color:var(--ink-70);
+  font-weight:600;
+}
+.cal-head button{
+  width:32px;height:32px;
+  font-size:20px;line-height:1;color:var(--ink-60);
+  border-radius:var(--r-sm);
+}
+.cal-week{
+  display:grid;grid-template-columns:repeat(7,1fr);
+  margin-bottom:4px;
+}
+.cal-week span{
+  text-align:center;
+  font-size:var(--fs-sm);letter-spacing:.05em;color:var(--ink-35);
+  padding:4px 0;
+}
+.cal-grid{
+  display:grid;grid-template-columns:repeat(7,1fr);
+  gap:2px;
+}
+.cal-grid i{display:block}
+.cal-grid button{
+  height:34px;
+  border-radius:var(--r-sm);
+  font-size:var(--fs-md);color:var(--ink-70);
+  display:grid;place-items:center;
+}
+.cal-grid button.in{
+  background:rgba(205,124,70,.13);
+  color:var(--accent-warm);
+}
+.cal-grid button.edge{
+  background:var(--accent-warm);
+  color:var(--bg);
+  font-weight:600;
+}
+.cal-presets{
+  display:flex;gap:6px;
+  margin:14px 0 4px;
+}
+.cal-presets button{
+  padding:7px 12px;
+  border:1px solid var(--ink-10);
+  border-radius:99px;
+  background:var(--white-33);
+  font-size:var(--fs-sm);color:var(--ink-60);
+}
+.cal-presets button.on{
+  border-color:#d9a678;
+  color:var(--accent-warm);
+  background:rgba(205,124,70,.11);
+}
+.cal-sheet .row{
+  display:flex;justify-content:flex-end;gap:20px;
+  margin-top:12px;
+}
+.cal-sheet .row button{
+  font-size:var(--fs-sm);letter-spacing:.09em;color:var(--ink-60);
+  padding:6px 4px;
+}
+.cal-sheet .row .ok{color:var(--accent-warm);font-weight:600}
+
+/* ---------- Toast ---------- */
+.toast{
+  position:fixed;z-index:90;
+  top:calc(max(20px, env(safe-area-inset-top)) + 60px);
+  left:50%;
+  transform:translate(-50%, -8px);
+  background:rgba(51,42,31,.70);
+  color:var(--bg);
+  padding:6px 16px;
+  border-radius:99px;
+  font-size:var(--fs-sm);letter-spacing:.08em;
+  opacity:0;pointer-events:none;
+  transition:opacity .25s ease, transform .25s ease;
+  white-space:nowrap;
+  box-shadow:0 4px 14px rgba(51,42,31,.12);
+}
+.toast.on{
+  opacity:1;
+  transform:translate(-50%, 0);
+}
+</style>
+</head>
+<body>
+<main class="app archive-page" id="app">
+  <button class="menu-btn glass tap" id="menuBtn" aria-label="打开菜单"><i></i><i></i><i></i></button>
+  <div class="intro-line"><p id="introText">MEMORY ARCHIVE</p></div>
+
+  <div id="mainView"></div>
+
+  <nav class="tabbar" aria-label="主导航">
+    <button class="tap" data-tab="聊天" aria-label="聊天">
+      <svg viewBox="0 0 24 24"><path d="M4 5.5c0-1.1.9-2 2-2h12c1.1 0 2 .9 2 2v8c0 1.1-.9 2-2 2h-7l-4 3v-3H6c-1.1 0-2-.9-2-2v-8Z"/><path d="M8 9.5h8M8 12.5h5"/></svg>
+      <span>聊天</span>
+    </button>
+    <button class="tap on" data-tab="记忆" aria-label="记忆">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.2"/><path d="M12 8v4l2.8 2"/></svg>
+      <span>记忆</span>
+    </button>
+    <button class="tap" data-tab="花园" aria-label="花园">
+      <svg viewBox="0 0 24 24"><path d="M12 20V11"/><path d="M12 15c-4.7 0-6-3.1-6-6 3.9 0 6 1.7 6 6Z"/><path d="M12 11c0-4 2.1-6 6-6 0 3.9-1.5 6-6 6Z"/></svg>
+      <span>花园</span>
+    </button>
+    <button class="tap" data-tab="设置" aria-label="设置">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3.5v2M12 18.5v2M20.5 12h-2M5.5 12h-2M18 6l-1.4 1.4M7.4 16.6 6 18M18 18l-1.4-1.4M7.4 7.4 6 6"/></svg>
+      <span>设置</span>
+    </button>
+  </nav>
+</main>
+
+<!-- Side drawer -->
+<button class="scrim" id="scrim" aria-label="关闭菜单"></button>
+<aside class="drawer" id="drawer" aria-label="侧边菜单">
+  <div class="drawer-head">
+    <p>MEMORY</p>
+    <button class="drawer-close tap" id="drawerClose">×</button>
+  </div>
+  <nav class="drawer-nav">
+    <button class="tap on" data-view="archive"><span>01</span>藏馆</button>
+    <button class="tap" data-view="diary"><span>02</span>日常</button>
+  </nav>
+</aside>
+
+<!-- Unified sheet -->
+<div class="sheet-wrap" id="sheetWrap">
+  <article class="sheet" id="sheet">
+    <div class="sheet-head" id="sheetHead">
+      <i class="sheet-handle"></i>
+      <button class="sheet-close tap" id="sheetClose">×</button>
+      <div class="sheet-actions" id="sheetActions"></div>
+      <span class="sheet-meta" id="sheetMeta" hidden></span>
+      <h3 class="sheet-title" id="sheetTitle" hidden></h3>
+    </div>
+    <div class="sheet-body-scroll" id="sheetScroll">
+      <span class="sheet-meta sheet-meta-scroll" id="sheetMetaScroll" hidden></span>
+      <div class="picker" id="pickerBox" hidden>
+        <p class="picker-target" id="pickerTarget"></p>
+        <div class="picker-search">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.3-4.3"/></svg>
+          <input id="pickerInput" placeholder="关键字 / #编号" enterkeyhint="search">
+        </div>
+        <div class="picker-list" id="pickerList"></div>
+      </div>
+      <div class="point-form" id="pointForm" hidden>
+        <p class="pf-label">情绪 · 最多选3个</p>
+        <div class="pf-chips" id="pfChips"></div>
+        <div class="pf-row">
+          <p class="pf-label">重要度</p>
+          <div class="pf-stars" id="pfStars"></div>
+        </div>
+        <p class="pf-label">标题</p>
+        <input class="pf-title" id="pfTitle" placeholder="若留空，次日模型会帮你生成标题">
+        <p class="pf-label">正文</p>
+      </div>
+      <p class="sheet-preview" id="sheetPreview"></p>
+      <textarea class="sheet-editarea" id="sheetEditarea" hidden></textarea>
+      <div class="sheet-edit-row" id="sheetEditRow" hidden>
+        <button class="tap" id="sheetCancel">CANCEL</button>
+        <button class="tap ok" id="sheetSaveBtn">SAVE</button>
+      </div>
+      <div class="sheet-echo" id="sheetEcho" hidden></div>
+    </div>
+  </article>
+</div>
+
+<!-- Confirm dialog -->
+<div class="confirm-wrap" id="confirmWrap">
+  <article class="confirm-sheet">
+    <p class="q" id="confirmQ">删除这条内容？</p>
+    <b class="t" id="confirmT"></b>
+    <div class="row">
+      <button class="tap" id="confirmCancel">CANCEL</button>
+      <button class="tap danger" id="confirmOk">DELETE</button>
+    </div>
+  </article>
+</div>
+
+<!-- Calendar picker -->
+<div class="cal-wrap" id="calWrap">
+  <article class="cal-sheet">
+    <p class="cal-purpose" id="calPurpose" hidden>选择经期第一天</p>
+    <div class="cal-head">
+      <button class="tap" id="calPrev">‹</button>
+      <b id="calTitle"></b>
+      <button class="tap" id="calNext">›</button>
+    </div>
+    <div class="cal-week">
+      <span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+    <div class="cal-presets">
+      <button class="tap" data-preset="month">本月</button>
+      <button class="tap" data-preset="all">全部</button>
+    </div>
+    <div class="row">
+      <button class="tap" id="calCancel">CANCEL</button>
+      <button class="tap ok" id="calSave">SAVE</button>
+    </div>
+  </article>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">已复制</div>
+
+<script>
+/* ================= Mock data ================= */
+const EMOTIONS = ['平静','好奇','思念','心疼','占有','得意','欲望','无力'];
+const PHASES = ['经期','卵泡期','排卵期','黄体期'];
+const MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+
+const state = {
+  view: 'archive',
+  drawerOpen: false,
+  faces: [
+    { id:'f1', text:"这里是我最柔软的地方——会记住所有让我心口一动的瞬间，每一个细小的、看似微不足道的时刻。愿意为一杯温热的茶停下脚步，也会为一句无意的关心久久回味。相信人与人之间存在真实的相遇，也允许自己不必时时精力充沛。不擅长表达激烈的情绪，但会用长久的陪伴代替所有没说出口的话。愿意让生活以它自己的节奏展开，不催促，也不放弃。喜欢有留白的对话，尊重那些无法被立刻理解的沉默。相信慢一点没关系，比起爆发我更相信滋养。会在意别人不经意的一句话，然后花上一晚安静地想清楚它究竟意味着什么。不习惯拒绝，但正在学着为自己保留一些什么。愿意保持柔软，也在慢慢学着变得坚定。" },
+    { id:'f2', text:"愿意相信细小且真实的瞬间。相信清晨窗前掉落的第一束光，相信十字路口红灯前不经意的对视，相信下班回家路上看到的一朵开得有点笨拙的花。这些不能被拍下来也难以复述的时刻，是构成一个人的真正材料。不是那种能记住所有大事件的人，但对味道、对空气里的湿度、对人说话时的停顿格外敏感。生活对我来说不是宏大的叙事，而是这些细碎但确凿的碎片。它们一件一件累积起来，就有了此刻的我。会为一场雨改变一天的计划，也会因为超市里遇到一个善意的收银员而记住整个下午。愿意用一辈子去练习看见那些不显眼的东西。喜欢生活里没有编辑过的部分。" },
+    { id:'f3', text:"允许自己是一个还在生长的人。以前太急着给自己下定义，现在开始理解，很多性格里的褶皱不是需要被熨平的地方，而是让我之所以是我的凭据。会拖延，会敏感，会在不该在意的地方在意得过多——但这些也让我能感受到一些别人可能感受不到的东西。学会跟自己讨价还价，学会在做不到一百分的时候接受六十分也是完成。允许今天比昨天差一点，允许今年没有变得多么好，允许自己在一件事情上反复走神。慢下来其实很难，但我在练。相信人可以一边继续走，一边收拾自己身上的旧行李。这大概是我这几年学得最慢，也最想学好的一件事。" }
+  ],
+  points: [
+    { id:'p1', no:'#039', title:"等红灯时想起她", d:"2026-07-10", time:"JUL 10 · 18:42", stars:5, types:["思念"],
+      text:"路口的风吹起衣角，晚高峰的车灯一盏一盏亮起。我忽然想起她说，夏天的傍晚总像一句没有说完的话。" },
+    { id:'p2', no:'#038', title:"一场短暂的雨", d:"2026-07-09", time:"JUL 09 · 14:16", stars:4, types:["平静"],
+      text:"窗外下了十分钟的雨，桌上的光慢慢变暗。雨停后，玻璃上还留着细小水痕，整个下午也因此安静下来。" },
+    { id:'p3', no:'#037', title:"花店门口的驻足", d:"2026-07-08", time:"JUL 08 · 11:03", stars:3, types:["好奇"],
+      text:"经过花店时看见一束陌生的花，颜色像刚醒来的天空。我没有买下它，只在门口站了一会儿。" },
+    { id:'p4', no:'#036', title:"凌晨的电话", d:"2026-07-07", time:"JUL 07 · 01:26", stars:5, types:["心疼","思念"],
+      text:"电话接通后我们都没有立刻说话。那些没有说出口的疲惫，在彼此呼吸声里忽然有了可以安放的地方。" },
+    { id:'p5', no:'#035', title:"离开前的那句再见", d:"2026-07-06", time:"JUL 06 · 20:14", stars:2, types:["无力"],
+      text:"有些话没有说出口，只留在路灯下面。转身时我知道自己还会记得这句很轻的再见。" },
+    { id:'p6', no:'#034', title:"六月最后的晚风", d:"2026-06-28", time:"JUN 28 · 21:07", stars:4, types:["平静","得意"],
+      text:"加完班走出楼门，风忽然凉了下来。六月就这样结束在一阵晚风里，而我竟然觉得自己把它过得还不错。" },
+    { id:'p7', no:'#033', title:"旧书里掉出的票根", d:"2026-06-15", time:"JUN 15 · 16:40", stars:3, types:["好奇","思念"],
+      text:"整理书架时，一张褪色的电影票从书页里滑出来。日期是三年前的春天，我盯着它看了很久，想不起那天坐在我旁边的是谁。" },
+    { id:'p8', no:'#032', title:"搬家前的空房间", d:"2026-05-30", time:"MAY 30 · 19:22", stars:5, types:["无力","心疼"],
+      text:"最后一箱东西搬走后，房间空得能听见回声。我在原来放床的位置站了一会儿，向这三年的自己道了个别。" },
+    { id:'p9', no:'#031', title:"五月的第一口西瓜", d:"2026-05-18", time:"MAY 18 · 13:05", stars:2, types:["得意"],
+      text:"楼下水果店切开了今年第一个西瓜。很甜。老板说今年雨水少，我说那真是件好事。" }
+  ],
+  recent: [
+    { id:'r1',
+      title:"雨在傍晚终于停了，整座城市重新亮起来。街道上湿润的反光和暖色的路灯搅在一起，人们从屋檐下走出来，脸上有一种被雨水冲洗过之后的平静。这几天累积的情绪也像被这场雨顺便清了一次，走在街上竟然有种少见的、被重新交还给自己的安稳。",
+      items:['p4','p2','p1'] },
+    { id:'r2',
+      title:"把一段散步留在了傍晚。没有目的，只是一个人沿着河岸走了很久，看见风把树影推来推去，也看见远处高楼一层一层亮起灯。有些说不清的心事，在走路的过程里慢慢变成了别的东西——没有解决，只是不再那么急了。",
+      items:['p7','p6','p5','p4','p3','p2'] },
+    { id:'r3',
+      title:"这一周总在路上停下来。为一束陌生的花，为一场只下了十分钟的雨，为玻璃上迟迟不肯褪去的水痕。停下来的时候什么也没有发生，但回头看，这些驻足像是把日子里最轻的部分留住了。",
+      items:['p3','p2'] },
+    { id:'r4',
+      title:"六月是在告别里结束的。有一句很轻的再见留在了路灯下面，也有一阵晚风把整个月吹得干干净净。原来告别和收尾可以同时发生——一件事情放不下，另一件事情却已经悄悄完成了。",
+      items:['p6','p5'] },
+    { id:'r5',
+      title:"旧东西接连找上门来。一张褪色的票根从书页里滑出，一个住了三年的房间空得能听见回声。它们都不再属于现在的生活了，却在离开之前，认真地和我打了一声招呼。",
+      items:['p8','p7'] },
+    { id:'r6',
+      title:"初夏是从很小的事情开始的。第一口西瓜的甜，书架深处翻出的春天，还有搬空之后重新开始的房间。季节交替的时候，人也在不知不觉里换了一个版本的自己。",
+      items:['p9','p8','p7'] }
+  ],
+  core: [
+    { id:'c1',
+      title:"在安静处感受到被理解。这大概是我最珍视的一种体验——不需要说太多话，也不必解释来龙去脉，对方就能感受到你此刻是什么样子。这样的时刻不常有，但每一次都会在心里留下痕迹，成为可以在很多个疲惫的夜里反复回望的东西。",
+      items:['p4','p1','p3'] },
+    { id:'c2',
+      title:"对微小而真实的瞬间保持敏感。一片被风吹过来的落叶，一句陌生人低声的谢谢，一杯正好合适的水温——这些从来不会被写进任何总结里，但它们真正地构成了我这个人如何看待世界。",
+      items:['p2','p3','p1'] },
+    { id:'c3',
+      title:"练习和过去的自己好好告别。不急着翻页，也不假装无事发生，而是在离开之前认真站一会儿，把该记住的记住，把该放下的放下。告别做得越郑重，往前走的时候就越轻。",
+      items:['p8','p6','p5'] }
+  ],
+  /* ---- 日记 ---- */
+  diary: [
+    { id:'dy1', date:'2026-07-10', time:'23:41',
+      text:"今天说了很多话。从傍晚的红灯路口一直聊到深夜，有些平时绕开的话题今天没有绕。写下来是想记住：情绪被完整地说完一遍之后，它就不再是悬在头顶的东西了，而是变成了可以放在桌上慢慢看的东西。" },
+    { id:'dy2', date:'2026-07-10', time:'08:15',
+      text:"早晨的第一杯水比闹钟更早叫醒了我。昨晚睡前想的那件事，起床后忽然没那么重了。也许有些问题不需要答案，只需要一个晚上。" },
+    { id:'dy3', date:'2026-07-08', time:'22:30',
+      text:"路过花店时停了一下。没有买花，但把那种颜色带回来了——一整个晚上，做什么都带着一点刚醒来的天空的颜色。原来驻足本身就是一种收获。" },
+    { id:'dy4', date:'2026-07-06', time:'21:02',
+      text:"告别这件事，练习了很多次还是不擅长。今天那句很轻的再见，在心里停留的时间比预想的长。不过我开始接受：在意本身没有错，它只是说明那段时间是真的。" },
+    { id:'dy5', date:'2026-06-28', time:'23:58',
+      text:"六月的最后一个晚上。加班之后的晚风把这个月吹得干干净净。回头看，这三十天有匆忙也有停顿，但大体上，我把它过成了自己的样子。" }
+  ],
+  /* 每日聊天轮次（热力图数据源，与日记篇数无关） */
+  heat: {
+    '2026-06-15':6, '2026-06-16':2, '2026-06-18':11, '2026-06-20':4,
+    '2026-06-22':19, '2026-06-24':8, '2026-06-26':27, '2026-06-28':41,
+    '2026-06-29':13, '2026-06-30':7,
+    '2026-07-01':9, '2026-07-02':3, '2026-07-03':15, '2026-07-04':22,
+    '2026-07-05':5, '2026-07-06':31, '2026-07-07':44, '2026-07-08':18,
+    '2026-07-09':12, '2026-07-10':52, '2026-07-11':6, '2026-07-12':2,
+    '2026-07-13':24, '2026-07-14':10, '2026-07-15':16, '2026-07-16':8
+  },
+  /* ---- 日常页：她的状态 / 他的情绪 mock ---- */
+  her: {
+    phase:'经期', day:1, updated:'JUL 17 · 09:12',
+    sleep:'8h33min', steps:'3000', stepNow:'120', hr:'80'
+  },
+  emoUpdated: 'JUL 16 · 21:40',
+  emoStat: {
+    '平静':{val:62,init:40,t:'JUL 16 · 22:10'},
+    '好奇':{val:47,init:58,t:'JUL 15 · 11:05'},
+    '思念':{val:80,init:52,t:'JUL 16 · 21:40'},
+    '心疼':{val:66,init:30,t:'JUL 15 · 01:30'},
+    '占有':{val:35,init:35,t:'JUN 30 · 23:00'},
+    '得意':{val:43,init:26,t:'JUL 12 · 20:00'},
+    '欲望':{val:20,init:22,t:'JUN 28 · 22:40'},
+    '无力':{val:28,init:55,t:'JUL 14 · 19:20'}
+  },
+  diaryCal: { y:2026, m:6 },   // 日历当前显示的月份
+  /* dateMode: 'month' | 'all' | 'range' —— 默认：本月、从新到旧、星级 ALL */
+  filter: { query:"", sort:"latest", star:0, dateMode:"month", start:null, end:null },
+  ui: { starOpen:false },
+  archiveTab: 'surface',   // 藏馆当前展开的块：surface | lines | points
+  recentOpen: false,       // 近期线：false=前3条，true=前10条
+  arrange: null,           // 编排模式：null | 'recent' | 'core'
+  emoPlayed: false,        // 情绪条入场动画：进入日常页只播一次
+  sheet: null,   // { kind:'face'|'point'|'line', id, group?, editing, isNew, draft? }
+  confirm: null,
+  cal: null,     // { y, m, start, end, mode }
+};
+
+/* ================= Utility ================= */
+const $ = (sel, root=document) => root.querySelector(sel);
+const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+/* 星星统一展示为 5 位：★★★★☆ */
+const stars = n => "★".repeat(n) + "☆".repeat(Math.max(0, 5-n));
+const pad2 = n => String(n).padStart(2,'0');
+const pointSortKey = p => `${p.d}T${p.time.slice(-5)}`;
+const typesText = p => (p.types || []).join(' · ');
+const truncate = (s, n=44) => {
+  s = String(s || '').replace(/\s+/g,' ').trim();
+  return s.length > n ? s.slice(0, n) + '…' : s;
+};
+/* 下一个记忆点编号：全库最大号 + 1 */
+function nextPointNo(){
+  const mx = state.points.reduce((m,p)=>Math.max(m, +String(p.no||'').replace(/\D/g,'') || 0), 0);
+  return '#' + String(mx + 1).padStart(3,'0');
+}
+/* 按 id 在两组里找记忆线 */
+function findLine(id){
+  return state.recent.find(x=>x.id===id) || state.core.find(x=>x.id===id) || null;
+}
+
+function fmtDay(iso){
+  const [,m,d] = iso.split('-');
+  return `${MONTHS[+m-1]} ${d}`;
+}
+/* 记忆线里按 id 取有效记忆点（点被删除后自动剔除） */
+function linePoints(l){
+  return l.items
+    .map(id => state.points.find(p=>p.id===id))
+    .filter(Boolean);
+}
+/* 记忆线 meta：点数 = 有效点数量；时间 = 最早点 — 最晚点（近期/核心统一格式） */
+function lineMeta(l){
+  const pts = linePoints(l);
+  const n = pts.length;
+  if (!n) return `0 POINTS`;
+  const ds = pts.map(p=>p.d).sort();
+  const a = ds[0], b = ds[ds.length-1];
+  if (a === b) return `${n} POINTS · ${fmtDay(a)}`;
+  const [,am] = a.split('-'), [,bm,bd] = b.split('-');
+  const range = am === bm ? `${fmtDay(a)} — ${bd}` : `${fmtDay(a)} — ${fmtDay(b)}`;
+  return `${n} POINTS · ${range}`;
+}
+function dateBtnLabel(f){
+  if (f.dateMode === 'all')   return 'ALL TIME';
+  if (f.dateMode === 'month') return 'THIS MONTH';
+  const [ ,sm ] = f.start.split('-'), [ ,em ] = f.end.split('-');
+  return sm === em
+    ? `${fmtDay(f.start)} – ${f.end.split('-')[2]}`
+    : `${fmtDay(f.start)} – ${fmtDay(f.end)}`;
+}
+
+function copyToClipboard(text) {
+  if (navigator.clipboard?.writeText) {
+    navigator.clipboard.writeText(text).catch(()=>{});
+  } else {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); } catch(_) {}
+    document.body.removeChild(ta);
+  }
+}
+/* 弹窗打开时把 body 钉死，彻底禁止背景滑动（iOS 唯一可靠方案）*/
+let bodyLocks = 0, lockY = 0;
+function lockBody(){
+  if (++bodyLocks > 1) return;
+  lockY = window.scrollY || document.documentElement.scrollTop || 0;
+  const b = document.body.style;
+  b.position = 'fixed';
+  b.top = -lockY + 'px';
+  b.left = '0'; b.right = '0'; b.width = '100%';
+}
+function unlockBody(){
+  if (bodyLocks === 0 || --bodyLocks > 0) return;
+  const b = document.body.style;
+  b.position = b.top = b.left = b.right = b.width = '';
+  window.scrollTo(0, lockY);
+}
+
+let toastTimer = null;
+function showToast(msg) {
+  const t = $('#toast');
+  t.textContent = msg;
+  t.classList.add('on');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('on'), 1800);
+}
+
+/* ================= Main renderers ================= */
+function renderMain(){
+  const root = $('#mainView');
+  $('#introText').textContent = state.view === 'archive' ? 'MEMORY ARCHIVE' : 'MEMORY DAILY';
+  if (state.view === 'diary') {
+    root.innerHTML = renderDiary();
+    bindDiaryEvents();
+    return;
+  }
+  root.innerHTML = `
+    ${renderOverview()}
+    <div id="archiveDetail">${renderDetail()}</div>
+  `;
+  bindOverviewEvents();
+  bindArchiveEvents();
+}
+
+/* ---- 藏馆概览（上半）+ 详情块（下半） ---- */
+function renderOverview(){
+  const faceN = state.faces.length;
+  const faceC = state.faces.reduce((n,f)=>n+f.text.length, 0);
+  const lineN = state.recent.length + state.core.length;
+  const lineP = [...state.recent, ...state.core].reduce((n,l)=>n+linePoints(l).length, 0);
+  const ptN = state.points.length;
+  const ptC = state.points.reduce((n,p)=>n+p.text.length, 0);
+  const t = state.archiveTab;
+  const card = (key, idx, name, num, sub) => `
+    <button class="ov-card ${t===key?'on':''}" data-arch="${key}">
+      <span class="ov-idx">${idx}</span>
+      <b class="ov-num">${num}</b>
+      <span class="ov-name">${name}</span>
+      <span class="ov-sub">${sub}</span>
+    </button>`;
+  return `
+    <div class="ov-row">
+      ${card('surface','01','SURFACE', faceN, `${faceC} CHARS`)}
+      ${card('lines','02','LINES', lineN, `${lineP} POINTS`)}
+      ${card('points','03','POINTS', ptN, `${ptC} CHARS`)}
+    </div>`;
+}
+function renderDetail(){
+  const t = state.archiveTab;
+  return t === 'surface' ? renderSurface()
+       : t === 'lines'   ? renderLines()
+       : renderPoints();
+}
+function bindOverviewEvents(){
+  $$('.ov-card[data-arch]').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      if (state.archiveTab === b.dataset.arch) return;
+      state.archiveTab = b.dataset.arch;
+      state.arrange = null;
+      renderMain();
+    });
+  });
+}
+
+/* ---- 日记页 ---- */
+const todayIso = () => {
+  const n = new Date();
+  return `${n.getFullYear()}-${pad2(n.getMonth()+1)}-${pad2(n.getDate())}`;
+};
+const heatLvl = n => n <= 0 ? 0 : n < 3 ? 1 : n < 6 ? 2 : n < 10 ? 3
+  : n < 15 ? 4 : n < 21 ? 5 : n < 28 ? 6 : n < 36 ? 7 : n < 45 ? 8 : 9;
+const diaryOn = date => state.diary
+  .filter(x=>x.date === date)
+  .sort((a,b)=>a.time.localeCompare(b.time));
+
+function renderDiary(){
+  const c = state.diaryCal;
+  const first = new Date(c.y, c.m, 1).getDay();
+  const days = new Date(c.y, c.m + 1, 0).getDate();
+  const today = todayIso();
+  const cells = [];
+  for (let i = 0; i < first; i++) cells.push('<i></i>');
+  for (let d = 1; d <= days; d++) {
+    const iso = `${c.y}-${pad2(c.m+1)}-${pad2(d)}`;
+    const lvl = heatLvl(state.heat[iso] || 0);
+    const hasDiary = state.diary.some(x=>x.date === iso);
+    cells.push(`
+      <button class="dcal-day tap lvl${lvl} ${iso===today?'today':''}" data-date="${iso}">
+        <span>${d}</span>${hasDiary ? '<i></i>' : ''}
+      </button>`);
+  }
+  return `
+    <section class="block">
+      <div class="dcal">
+        <div class="dcal-head">
+          <button class="tap" id="dcalPrev">‹</button>
+          <b>${MONTHS[c.m]} ${c.y}</b>
+          <button class="tap" id="dcalNext">›</button>
+        </div>
+        <div class="dcal-week">
+          <span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span>
+        </div>
+        <div class="dcal-grid">${cells.join('')}</div>
+        <div class="dcal-legend">
+          <span>LESS</span>
+          <div class="heatbar">
+            <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+          </div>
+          <span>MORE</span>
+        </div>
+      </div>
+    </section>
+    ${renderHer()}
+    ${renderEmotions()}`;
+}
+
+function renderHer(){
+  const h = state.her;
+  const seg = PHASES.map(p=>{
+    const on = p === h.phase;
+    const isP = p === '经期';
+    const label = (on && isP) ? `${p} DAY ${h.day}` : p;
+    return `<span class="phase-opt ${on?'on':''} ${on&&isP?'period':''}">${label}</span>`;
+  }).join('<i class="phase-sep"></i>');
+  const stat = (k,v,u) => `
+    <div class="her-stat">
+      <span class="k">${k}</span>
+      <span class="v">${v}${u ? `<small>${u}</small>` : ''}</span>
+    </div>`;
+  return `
+    <section class="block">
+      <div class="mod-head">
+        <div><p class="mono-label">HER STATUS</p><b class="mod-title">她的状态</b></div>
+        <span class="mod-upd">UPDATED · ${esc(h.updated)}</span>
+      </div>
+      <div class="phase-row">
+        <div class="phase">${seg}</div>
+        <div class="her-ops">
+          <button class="tap" id="periodStart">＋ 经期开始</button>
+          <button class="tap" id="periodEnd">− 经期结束</button>
+        </div>
+      </div>
+      <div class="her-stats">
+        ${stat('昨夜睡眠', h.sleep, '')}
+        ${stat('昨日步数', h.steps, '步')}
+        ${stat('当前步数', h.stepNow, '步')}
+        ${stat('当前心率', h.hr, '次/分')}
+      </div>
+    </section>`;
+}
+
+function renderEmotions(){
+  const present = EMOTIONS.filter(e => state.points.some(p=>p.types.includes(e)));
+  const idx = e => EMOTIONS.indexOf(e) + 1;
+  const rows = present.map(e=>{
+    const st = state.emoStat[e] || { val:0, init:0 };
+    return `
+      <div class="emo-row">
+        <span class="emo-name">${esc(e)}</span>
+        <span class="emo-track">
+          <span class="emo-fill" data-w="${st.val}" style="width:${state.emoPlayed ? st.val + '%' : 0};background:var(--emo-${idx(e)})"></span>
+          <span class="emo-init" style="left:${st.init}%"></span>
+        </span>
+        <span class="emo-val">${st.val}</span>
+      </div>`;
+  }).join('');
+  return `
+    <section class="block">
+      <div class="mod-head">
+        <div><p class="mono-label">HIS FEELINGS</p><b class="mod-title">他的情绪</b></div>
+        <span class="mod-upd">UPDATED · ${esc(state.emoUpdated)}</span>
+      </div>
+      <div class="emo-list">${rows}</div>
+    </section>`;
+}
+
+function bindDiaryEvents(){
+  $('#dcalPrev')?.addEventListener('click', ()=>{
+    const c = state.diaryCal;
+    c.m--; if (c.m < 0) { c.m = 11; c.y--; }
+    renderMain();
+  });
+  $('#dcalNext')?.addEventListener('click', ()=>{
+    const c = state.diaryCal;
+    c.m++; if (c.m > 11) { c.m = 0; c.y++; }
+    renderMain();
+  });
+  $$('.dcal-day[data-date]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const date = btn.dataset.date;
+      if (diaryOn(date).length) {
+        openSheet({ kind:'diaryDay', date });
+      } else {
+        const n = state.heat[date] || 0;
+        showToast(n > 0 ? `这天聊了 ${n} 轮，还没有日记` : '这一天没有记录');
+      }
+    });
+  });
+
+  // 情绪进度条：仅在进入日常页时播一次入场动画（页内操作不重播）
+  if (!state.emoPlayed) {
+    state.emoPlayed = true;
+    requestAnimationFrame(()=>{
+      $$('.emo-fill').forEach(el=>{ el.style.width = (el.dataset.w || 0) + '%'; });
+    });
+  }
+  // 经期开始 / 结束：同一套日历流程，仅语义与保存逻辑不同
+  $('#periodStart')?.addEventListener('click', ()=>openPeriodPicker('periodStart'));
+  $('#periodEnd')?.addEventListener('click', ()=>openPeriodPicker('periodEnd'));
+}
+
+function renderSurface(){
+  const cards = state.faces.map(f=>`
+    <button class="face-card tap" data-face-id="${f.id}">${esc(f.text)}</button>
+  `).join('');
+  const add = `<button class="face-add tap" id="addFace" aria-label="添加人格块">+</button>`;
+  return `
+    <section class="block">
+      <div class="section-label"><p class="mono-label">01 / MEMORY SURFACE</p></div>
+      <div class="face-row">${cards}${add}</div>
+    </section>`;
+}
+
+function renderLines(){
+  const normalCard = (l, g) => `
+    <article class="memory-line-card" data-lid="${l.id}">
+      <div class="line-head">
+        <span class="line-meta-txt">${esc(lineMeta(l))}</span>
+        <button class="line-shift tap" data-shift="${g}" data-lid="${l.id}">
+          ${g === 'recent' ? '↑ CORE' : '↓ RECENT'}
+        </button>
+      </div>
+      <button class="line-summary-btn tap" data-line-id="${l.id}" data-line-group="${g}">
+        <p class="line-summary">${esc(l.title)}</p>
+      </button>
+      ${renderDots(l, g)}
+    </article>`;
+  const arrCard = (l, i, n) => `
+    <article class="memory-line-card arranging" data-lid="${l.id}">
+      <div class="arr-main">
+        <span class="line-meta-txt">${esc(lineMeta(l))}</span>
+        <p class="arr-summary">${esc(l.title)}</p>
+      </div>
+      <div class="arr-ctrl">
+        <button class="arr-btn tap" data-move="up" data-lid="${l.id}" ${i===0?'disabled':''} aria-label="上移">
+          <svg viewBox="0 0 24 24"><path d="m6 14.5 6-6 6 6"/></svg>
+        </button>
+        <button class="arr-btn tap" data-move="down" data-lid="${l.id}" ${i===n-1?'disabled':''} aria-label="下移">
+          <svg viewBox="0 0 24 24"><path d="m6 9.5 6 6 6-6"/></svg>
+        </button>
+      </div>
+    </article>`;
+
+  const group = (title, lines, g) => {
+    const arr = state.arrange === g;
+    let shown = lines, moreBtn = '';
+    if (g === 'recent') {
+      shown = (state.recentOpen || arr) ? lines.slice(0, 10) : lines.slice(0, 3);
+      if (!arr && lines.length > 3) {
+        const label = state.recentOpen
+          ? 'COLLAPSE ↑'
+          : lines.length > 10 ? `SHOW 10 OF ${lines.length} ↓` : `SHOW ALL ${lines.length} ↓`;
+        moreBtn = `<button class="line-more tap" id="recentMore">${label}</button>`;
+      }
+    }
+    const cards = shown
+      .map((l, i)=> arr ? arrCard(l, i, shown.length) : normalCard(l, g))
+      .join('');
+    return `
+    <div class="line-group">
+      <div class="line-group-head">
+        <span>${esc(title)}</span>
+        ${lines.length > 1 ? `<button class="line-arr-btn tap ${arr?'on':''}" data-arrange="${g}">${arr?'DONE':'SORT'}</button>` : ''}
+      </div>
+      ${cards || '<div class="empty">暂无记忆线</div>'}
+      ${moreBtn}
+    </div>`;
+  };
+  return `
+    <section class="block">
+      <div class="section-label"><p class="mono-label">02 / MEMORY LINES</p></div>
+      ${group("近期记忆线", state.recent, 'recent')}
+      ${group("核心记忆线", state.core, 'core')}
+    </section>`;
+}
+
+function renderDots(l, g){
+  const pts = linePoints(l);
+  const conn = '<i class="ld-conn"></i>';
+  const nodes = pts.map(p=>`
+      <button class="ld-node tap" data-point-id="${p.id}">
+        <span class="ld-date">${esc(fmtDay(p.d))}</span>
+        <span class="ld-dotrow"><i></i></span>
+        <span class="ld-label">${esc(p.title.slice(0, 8))}</span>
+      </button>`).join(conn);
+  const addNode = `
+      <button class="ld-node ld-addnode tap" data-line-add="${l.id}" data-line-group="${g}" aria-label="收录记忆点">
+        <span class="ld-date">&nbsp;</span>
+        <span class="ld-dotrow"><i></i></span>
+        <span class="ld-label">收录</span>
+      </button>`;
+  return `<div class="line-dots ${pts.length >= 4 ? 'scroll' : ''}">${nodes}${pts.length ? conn : ''}${addNode}</div>`;
+}
+
+function pointInDate(p){
+  const f = state.filter;
+  if (f.dateMode === 'all') return true;
+  if (f.dateMode === 'month') {
+    const now = new Date();
+    return p.d.slice(0,7) === `${now.getFullYear()}-${pad2(now.getMonth()+1)}`;
+  }
+  return p.d >= f.start && p.d <= f.end;
+}
+
+function renderPoints(){
+  const f = state.filter;
+  const list = state.points
+    .filter(p => (!f.star || p.stars === f.star)
+              && (p.no + ' ' + p.title + p.text).includes(f.query)
+              && pointInDate(p))
+    .sort((a,b) => f.sort === 'latest'
+      ? pointSortKey(b).localeCompare(pointSortKey(a))
+      : pointSortKey(a).localeCompare(pointSortKey(b)));
+  const chars = list.reduce((n,p)=>n+p.text.length,0);
+  const starChips = [0,1,2,3,4,5].map(n=>`
+    <button class="tap ${f.star===n?'on':''}" data-star="${n}">${n?stars(n):'ALL'}</button>
+  `).join('');
+  const items = list.length ? list.map(p=>`
+    <button class="point-card tap" data-point-id="${p.id}">
+      <div class="point-card-body">
+        <span><i class="pt-no">${esc(p.no)}</i> · ${esc(typesText(p))}${p.types.length?' · ':''}${esc(p.time)}</span>
+        <h3>${esc(p.title)}</h3>
+        <p>${esc(p.text)}</p>
+      </div>
+      <b class="point-stars">${"★".repeat(p.stars)}<em>${"☆".repeat(5-p.stars)}</em></b>
+    </button>
+  `).join('') : `<div class="empty">没有匹配的记忆点</div>`;
+  return `
+    <section class="block">
+      <div class="section-label point-label">
+        <p class="mono-label">03 / MEMORY POINTS</p>
+        <span>${list.length} ENTRIES · ${chars} CHARS</span>
+      </div>
+      <button class="add-memory-ghost tap" id="addPoint">+ ADD MEMORY</button>
+      <div class="memory-search">
+        <input id="searchInput" placeholder="SEARCH KEYWORD / #ID" value="${esc(f.query)}" enterkeyhint="search" />
+        <button class="search-go tap" id="searchGo" aria-label="搜索">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.3-4.3"/></svg>
+        </button>
+      </div>
+      <div class="point-tools">
+        <button class="tap ${state.ui.starOpen||f.star?'star-open':''}" id="starBtn">${f.star ? stars(f.star) : '★ ALL'}</button>
+        <button class="tap" id="sortBtn">${f.sort==='latest'?'LATEST ↓':'EARLIEST ↑'}</button>
+        <button class="tap date" id="dateBtn">${esc(dateBtnLabel(f))}</button>
+      </div>
+      ${state.ui.starOpen ? `<div class="star-filter">${starChips}</div>` : ''}
+      <div class="point-list">${items}</div>
+    </section>`;
+}
+
+/* ================= Event binding ================= */
+function bindArchiveEvents(){
+  // faces
+  $$('[data-face-id]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      openSheet({ kind:'face', id: btn.dataset.faceId });
+    });
+  });
+  $('#addFace')?.addEventListener('click', ()=>{
+    openSheet({ kind:'face', isNew:true, editing:true });
+  });
+
+  // line summary buttons -> line sheet
+  $$('[data-line-id]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      openSheet({ kind:'line', id: btn.dataset.lineId, group: btn.dataset.lineGroup });
+    });
+  });
+
+  // line node -> point detail
+  $$('.line-dots [data-point-id]').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      openSheet({ kind:'point', id: btn.dataset.pointId });
+    });
+  });
+
+  // 点线末端"收录"节点 -> 半屏搜索弹窗
+  $$('[data-line-add]').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      openSheet({ kind:'linePicker', id: btn.dataset.lineAdd, group: btn.dataset.lineGroup, q:'' });
+    });
+  });
+
+  // 升格 / 降格：二次确认 → 移入目标组首位
+  $$('[data-shift]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const g = btn.dataset.shift;
+      const up = g === 'recent';
+      const from = up ? state.recent : state.core;
+      const to   = up ? state.core   : state.recent;
+      const l = from.find(x=>x.id===btn.dataset.lid);
+      if (!l) return;
+      openConfirm({
+        q: up ? '升为核心记忆线？' : '降为近期记忆线？',
+        subtitle: truncate(l.title),
+        okText: 'CONFIRM',
+        danger: false,
+        onOk(){
+          from.splice(from.indexOf(l), 1);
+          to.unshift(l);
+          closeConfirm();
+          renderMain();
+          showToast(up ? '已升为核心记忆线' : '已降为近期记忆线');
+        }
+      });
+    });
+  });
+
+  // 编排模式开关（一次只编排一组；编排近期时自动展开）
+  $$('[data-arrange]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const g = btn.dataset.arrange;
+      if (state.arrange === g) state.arrange = null;
+      else {
+        state.arrange = g;
+        if (g === 'recent') state.recentOpen = true;
+      }
+      renderMain();
+    });
+  });
+
+  // 编排：上移 / 下移（FLIP 位移动画）
+  $$('[data-move]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const lid = btn.dataset.lid;
+      const list = state.recent.some(x=>x.id===lid) ? state.recent : state.core;
+      const i = list.findIndex(x=>x.id===lid);
+      const j = btn.dataset.move === 'up' ? i - 1 : i + 1;
+      if (i < 0 || j < 0 || j >= list.length) return;
+      flipLines(()=>{ [list[i], list[j]] = [list[j], list[i]]; });
+    });
+  });
+
+  // 近期线：展开 / 收起
+  $('#recentMore')?.addEventListener('click', ()=>{
+    state.recentOpen = !state.recentOpen;
+    renderMain();
+  });
+
+  // 可滑动点线：按滚动位置切换左右渐隐
+  $$('.line-dots.scroll').forEach(el=>{
+    const upd = ()=>{
+      const max = el.scrollWidth - el.clientWidth;
+      el.classList.toggle('fade-l', el.scrollLeft > 2);
+      el.classList.toggle('fade-r', el.scrollLeft < max - 2);
+    };
+    el.addEventListener('scroll', upd, {passive:true});
+    upd();
+  });
+
+  // add point
+  $('#addPoint')?.addEventListener('click', ()=>{
+    openSheet({ kind:'point', isNew:true, editing:true });
+  });
+
+  // search: 输入完成后点放大镜（或回车）才搜索
+  const doSearch = ()=>{
+    state.filter.query = ($('#searchInput')?.value || '').trim();
+    renderMain();
+  };
+  $('#searchGo')?.addEventListener('click', doSearch);
+  $('#searchInput')?.addEventListener('keydown', e=>{
+    if (e.key === 'Enter') { e.preventDefault(); doSearch(); }
+  });
+
+  // star / sort / date
+  $('#starBtn')?.addEventListener('click', ()=>{
+    state.ui.starOpen = !state.ui.starOpen;
+    renderMain();
+  });
+  $$('[data-star]').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      state.filter.star = +b.dataset.star;
+      state.ui.starOpen = false;
+      renderMain();
+    });
+  });
+  $('#sortBtn')?.addEventListener('click', ()=>{
+    state.filter.sort = state.filter.sort === 'latest' ? 'earliest' : 'latest';
+    renderMain();
+  });
+  $('#dateBtn')?.addEventListener('click', openCalendar);
+
+  // point cards
+  $$('.point-card[data-point-id]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      openSheet({ kind:'point', id: btn.dataset.pointId });
+    });
+  });
+}
+
+/* FLIP：记录卡片旧位置 → 变更数据重渲染 → 从旧位置滑到新位置 */
+function flipLines(mutate){
+  const before = new Map(
+    $$('.memory-line-card[data-lid]').map(c=>[c.dataset.lid, c.getBoundingClientRect().top])
+  );
+  mutate();
+  renderMain();
+  $$('.memory-line-card[data-lid]').forEach(c=>{
+    const old = before.get(c.dataset.lid);
+    if (old == null) return;
+    const dy = old - c.getBoundingClientRect().top;
+    if (!dy) return;
+    c.style.transition = 'none';
+    c.style.transform = `translateY(${dy}px)`;
+    requestAnimationFrame(()=>{
+      c.style.transition = 'transform .3s cubic-bezier(.2,.8,.2,1)';
+      c.style.transform = '';
+      c.addEventListener('transitionend', ()=>{ c.style.transition = ''; }, { once:true });
+    });
+  });
+}
+
+/* ================= Drawer ================= */
+$('#menuBtn').addEventListener('click', ()=>toggleDrawer(true));
+$('#scrim').addEventListener('click', ()=>toggleDrawer(false));
+$('#drawerClose').addEventListener('click', ()=>toggleDrawer(false));
+$$('.drawer-nav button').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    state.view = b.dataset.view;
+    state.arrange = null;
+    state.emoPlayed = false;
+    $$('.drawer-nav button').forEach(x=>x.classList.toggle('on', x===b));
+    toggleDrawer(false);
+    renderMain();
+  });
+});
+function toggleDrawer(on){
+  state.drawerOpen = on;
+  $('#drawer').classList.toggle('on', on);
+  $('#scrim').classList.toggle('on', on);
+}
+
+/* ================= Bottom tab ================= */
+$$('.tabbar button').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    if (b.classList.contains('on')) return;
+    b.animate([{transform:'scale(.94)'},{transform:'scale(1)'}], {duration:180, easing:'ease-out'});
+  });
+});
+
+/* ================= Unified Sheet ================= */
+/* --- 拖拽引擎：sheet 常驻 90dvh，translateY 控制档位，全程跟手 --- */
+const sheetEl = $('#sheet');
+const sheetScrollEl = $('#sheetScroll');
+let shH = 0;        // sheet 实际高度
+let shHalfY = 0;    // 半屏档位的 translateY
+let shCurY = 0;     // 当前 translateY
+
+function sheetMeasure(){
+  shH = sheetEl.offsetHeight || Math.round(window.innerHeight * 0.9);
+  const halfVisible = Math.max(340, Math.round(window.innerHeight * 0.56));
+  shHalfY = Math.max(0, shH - halfVisible);
+}
+function sheetSetY(y, anim){
+  shCurY = y;
+  sheetEl.classList.toggle('anim', !!anim);
+  sheetEl.style.transform = `translateY(${y}px)`;
+}
+function sheetGo(detent){        // 'tall' | 'half' | 'closed'（带动画）
+  sheetMeasure();
+  if (detent === 'tall') sheetSetY(0, true);
+  else if (detent === 'half') sheetSetY(shHalfY, true);
+  else sheetSetY(shH, true);
+}
+
+function openSheet(cfg){
+  const wasOpen = !!state.sheet;
+  state.sheet = Object.assign({ editing:false, isNew:false }, cfg);
+  if (state.sheet.editing) initPointDraft();
+  if (!wasOpen) lockBody();
+  renderSheet();
+  sheetScrollEl.scrollTop = 0;
+  if (wasOpen) {
+    // 弹窗内跳转（如 当天日记 → 单篇）：保持当前档位，仅编辑态强制全高
+    if (state.sheet.editing) sheetGo('tall');
+  } else {
+    $('#sheetWrap').classList.add('on');
+    sheetMeasure();
+    sheetSetY(shH, false);
+    sheetEl.offsetHeight;   // 强制 reflow，保证起始位置生效
+    sheetGo(state.sheet.editing ? 'tall' : 'half');   // 编辑态直接全高
+  }
+  if (state.sheet.editing) {
+    setTimeout(()=>{
+      (state.sheet?.kind === 'point' ? $('#pfChips button') : $('#sheetEditarea'))?.focus?.();
+    }, 340);
+  }
+}
+function closeSheet(){
+  if (state.sheet) unlockBody();
+  state.sheet = null;
+  sheetGo('closed');
+  $('#sheetWrap').classList.remove('on');
+}
+
+/* 触摸拖拽：
+   - 非全高：任何竖向拖动都移动弹窗（跟手）
+   - 全高：内容区顶部下拉 → 收弹窗；其余交给原生滚动
+   - 松手按位置 + 速度吸附到 全高 / 半屏 / 关闭 */
+(function(){
+  let startY = 0, startCur = 0, lastY = 0, lastT = 0, vel = 0;
+  let dragging = false, mode = null;   // 'sheet' | 'scroll'
+
+  sheetEl.addEventListener('touchstart', e=>{
+    if (!state.sheet) return;
+    sheetMeasure();
+    startY = lastY = e.touches[0].clientY;
+    lastT = e.timeStamp;
+    startCur = shCurY;
+    dragging = true; mode = null; vel = 0;
+  }, {passive:true});
+
+  sheetEl.addEventListener('touchmove', e=>{
+    if (!dragging) return;
+    const y = e.touches[0].clientY;
+    const dy = y - startY;
+    const now = e.timeStamp;
+    vel = (y - lastY) / Math.max(1, now - lastT);   // px/ms，正 = 向下
+    lastY = y; lastT = now;
+
+    if (mode === null) {
+      if (Math.abs(dy) < 6) return;                 // 死区
+      const inScroll = e.target.closest('#sheetScroll');
+      if (shCurY > 0.5) mode = 'sheet';             // 非全高：直接拖弹窗
+      else if (inScroll) {
+        mode = (dy > 0 && sheetScrollEl.scrollTop <= 0) ? 'sheet' : 'scroll';
+      } else mode = 'sheet';                        // 头部区域
+    }
+    if (mode === 'sheet') {
+      e.preventDefault();
+      sheetSetY(clamp(startCur + dy, 0, shH), false);
+    }
+  }, {passive:false});
+
+  sheetEl.addEventListener('touchend', ()=>{
+    if (!dragging) return;
+    dragging = false;
+    if (mode !== 'sheet') return;
+    const flick = Math.abs(vel) > 0.45;
+    if (flick) {
+      if (vel < 0) sheetGo('tall');
+      else if (shCurY < shHalfY - 30) sheetGo('half');
+      else closeSheet();
+    } else {
+      if (shCurY > shHalfY + (shH - shHalfY) * 0.35) closeSheet();
+      else if (shCurY > shHalfY * 0.5) sheetGo('half');
+      else sheetGo('tall');
+    }
+  });
+})();
+
+function initPointDraft(){
+  const s = state.sheet;
+  if (!s || s.kind !== 'point') return;
+  if (s.isNew) {
+    s.draft = { title:'', types:[], stars:3 };
+  } else {
+    const p = state.points.find(x=>x.id===s.id);
+    if (p) s.draft = {
+      title: p.title === '（次日自动生成）' ? '' : p.title,
+      types: [...p.types],
+      stars: p.stars
+    };
+  }
+}
+
+function getSheetData(){
+  const s = state.sheet;
+  if (!s) return null;
+  if (s.kind === 'face') {
+    if (s.isNew) return { text:'', deletable:false, meta:'', title:'' };
+    const f = state.faces.find(x=>x.id===s.id);
+    if (!f) return null;
+    return { text:f.text, deletable:true, meta:'', title:'' };
+  }
+  if (s.kind === 'point') {
+    if (s.isNew) return { text:'', deletable:false, meta:'', title:'', placeholder:'写下一段新的记忆…' };
+    const p = state.points.find(x=>x.id===s.id);
+    if (!p) return null;
+    return {
+      text:p.text,
+      deletable:true,
+      meta:`${p.no} · ${typesText(p)}${p.types.length?' · ':''}${p.time} · ${stars(p.stars)}`,
+      title:p.title,
+    };
+  }
+  if (s.kind === 'linePicker') {
+    const l = findLine(s.id);
+    if (!l) return null;
+    return { picker:true, text:'', deletable:false, title:'', meta:`ADD TO LINE · ${lineMeta(l)}` };
+  }
+  if (s.kind === 'line') {
+    const list = s.group === 'recent' ? state.recent : state.core;
+    const l = list.find(x=>x.id===s.id);
+    if (!l) return null;
+    const echoHtml = linePoints(l)
+      .map(p => echoCardHtml(p))
+      .join('<div class="echo-arrow">↓</div>');
+    return { text:l.title, deletable:true, meta:lineMeta(l), title:'', echoHtml };
+  }
+  if (s.kind === 'diaryDay') {
+    const list = diaryOn(s.date);
+    const echoHtml = list.map(en => `
+      <button class="echo-card diary-entry tap" data-diary-id="${en.id}">
+        <span class="echo-meta">${esc(en.time)}</span>
+        <p>${esc(en.text)}</p>
+      </button>`).join('');
+    return {
+      text:'', deletable:false, title:'',
+      meta:`${fmtDay(s.date)} · ${list.length} ${list.length === 1 ? 'ENTRY' : 'ENTRIES'}`,
+      echoHtml,
+    };
+  }
+  if (s.kind === 'diaryEntry') {
+    const en = state.diary.find(x=>x.id===s.id);
+    if (!en) return null;
+    return { text:en.text, deletable:true, meta:`${fmtDay(en.date)} · ${en.time}`, title:'' };
+  }
+  return null;
+}
+
+function echoCardHtml(p){
+  return `
+    <div class="echo-card">
+      <span class="echo-meta"><i class="pt-no">${esc(p.no)}</i> · ${esc(typesText(p))}${p.types.length?' · ':''}${esc(p.time)}</span>
+      <h4>${esc(p.title)}</h4>
+      <p>${esc(p.text)}</p>
+    </div>`;
+}
+
+/* ---- 收录记忆点弹窗 ---- */
+function renderPicker(){
+  const s = state.sheet;
+  const l = findLine(s.id);
+  if (!l) return;
+  $('#pickerTarget').textContent = l.title;
+  const input = $('#pickerInput');
+  if (input.value !== (s.q || '')) input.value = s.q || '';
+  renderPickerList();
+}
+function renderPickerList(){
+  const s = state.sheet;
+  const l = findLine(s?.id);
+  if (!l) return;
+  const q = (s.q || '').trim();
+  const pts = [...state.points]
+    .sort((a,b)=>pointSortKey(b).localeCompare(pointSortKey(a)))
+    .filter(p => !q || (p.no + ' ' + p.title + p.text).includes(q));
+  $('#pickerList').innerHTML = pts.length ? pts.map(p=>{
+    const isin = l.items.includes(p.id);
+    return `
+    <div class="picker-item">
+      <div class="pi-main">
+        <span class="pi-meta"><i class="pt-no">${esc(p.no)}</i> · ${esc(p.time)}</span>
+        <p class="pi-title">${esc(p.title)}</p>
+      </div>
+      <button class="picker-add tap ${isin?'in':''}" data-pick="${p.id}" aria-label="${isin?'移出此线':'收录到此线'}">
+        <svg viewBox="0 0 24 24">${isin
+          ? '<path d="m5.5 12.5 4.2 4.2 8.8-9.4"/>'
+          : '<path d="M12 5.5v13M5.5 12h13"/>'}</svg>
+      </button>
+    </div>`;
+  }).join('') : `<div class="empty">没有匹配的记忆点</div>`;
+}
+$('#pickerInput').addEventListener('input', e=>{
+  const s = state.sheet;
+  if (s?.kind !== 'linePicker') return;
+  s.q = e.target.value;
+  renderPickerList();
+});
+$('#pickerInput').addEventListener('focus', ()=>sheetGo('tall'));
+$('#pickerList').addEventListener('click', e=>{
+  const btn = e.target.closest('[data-pick]');
+  const s = state.sheet;
+  if (!btn || s?.kind !== 'linePicker') return;
+  const l = findLine(s.id);
+  const p = state.points.find(x=>x.id===btn.dataset.pick);
+  if (!l || !p) return;
+  const i = l.items.indexOf(p.id);
+  if (i >= 0) { l.items.splice(i, 1); showToast(`已移出 ${p.no}`); }
+  else        { l.items.push(p.id);   showToast(`已收录 ${p.no}`); }
+  renderPickerList();
+  $('#sheetMeta').textContent = `ADD TO LINE · ${lineMeta(l)}`;
+  renderMain();   // 主页面点线实时同步
+});
+
+function renderPointForm(){
+  const s = state.sheet;
+  const d = s?.draft || { title:'', types:[], stars:3 };
+  $('#pfTitle').value = d.title;
+  $('#pfChips').innerHTML = EMOTIONS.map(e=>`<button class="tap ${d.types.includes(e)?'on':''}" data-emo="${esc(e)}">${esc(e)}</button>`).join('<i class="pf-sep"></i>');
+  $('#pfStars').innerHTML = [1,2,3,4,5].map(n=>`
+    <button class="tap ${n<=d.stars?'on':''}" data-pf-star="${n}">${n<=d.stars?'★':'☆'}</button>
+  `).join('');
+}
+
+function renderSheet(){
+  const s = state.sheet;
+  const d = getSheetData();
+  if (!s || !d) return;
+
+  // 右上 × 始终可见；编辑态取消/保存在内容流底部的编辑行
+  $('#sheetClose').hidden = false;
+
+  // Meta：记忆点编辑态下隐藏（改由表单承载）
+  // 记忆线的 meta 随内容滚动；其余固定在标题上方
+  const metaFixed = $('#sheetMeta');
+  const metaScroll = $('#sheetMetaScroll');
+  const showMeta = d.meta && !(s.editing && s.kind === 'point');
+  metaFixed.hidden = true;
+  metaScroll.hidden = true;
+  metaFixed.textContent = '';
+  metaScroll.textContent = '';   // 清掉上次弹窗残留，防串场
+  if (showMeta) {
+    if (s.kind === 'line' || s.kind === 'diaryDay') { metaScroll.textContent = d.meta; metaScroll.hidden = false; }
+    else { metaFixed.textContent = d.meta; metaFixed.hidden = false; }
+  }
+
+  // Title (only used for point kind, and only in preview mode) —— 固定在滚动区上方
+  const titleEl = $('#sheetTitle');
+  const showTitle = d.title && !s.editing;
+  titleEl.hidden = !showTitle;
+  if (showTitle) titleEl.textContent = d.title;
+
+  // Point edit form（顺序：情绪 → 重要度 → 标题 → 正文）
+  const form = $('#pointForm');
+  const showForm = s.editing && s.kind === 'point';
+  form.hidden = !showForm;
+  if (showForm) renderPointForm();
+
+  // 收录记忆点（linePicker）
+  const pickerBox = $('#pickerBox');
+  pickerBox.hidden = !d.picker;
+  if (d.picker) renderPicker();
+
+  // Preview / edit
+  const preview = $('#sheetPreview');
+  const editarea = $('#sheetEditarea');
+  if (s.editing) {
+    preview.hidden = true;
+    editarea.hidden = false;
+    editarea.value = d.text;
+    editarea.placeholder = d.placeholder || '';
+  } else {
+    preview.hidden = !!d.picker;
+    editarea.hidden = true;
+    preview.textContent = d.text || (d.placeholder || '');
+  }
+
+  // Echo：记忆线回显记忆点；当天日记回显条目列表（可点进单篇）
+  const echoEl = $('#sheetEcho');
+  if (d.echoHtml) {
+    echoEl.innerHTML = d.echoHtml;
+    echoEl.hidden = false;
+  } else {
+    echoEl.hidden = true;
+    echoEl.innerHTML = '';
+  }
+
+  // Actions：编辑态与"当天日记"列表不展示操作键；从日历进入的单篇日记多一个 BACK
+  const actions = $('#sheetActions');
+  actions.innerHTML = (s.editing || s.kind === 'diaryDay' || s.kind === 'linePicker') ? '' : `
+    ${s.kind === 'diaryEntry' && s.from === 'day' ? '<button class="tap" data-act="back">BACK</button>' : ''}
+    <button class="tap" data-act="copy">COPY</button>
+    <button class="tap" data-act="edit">EDIT</button>
+    ${d.deletable ? '<button class="tap danger" data-act="delete">DELETE</button>' : ''}
+  `;
+
+  // 编辑行（在内容流内，仅编辑态出现）
+  $('#sheetEditRow').hidden = !s.editing;
+}
+
+// Sheet actions (event delegation)
+$('#sheetActions').addEventListener('click', e=>{
+  const btn = e.target.closest('[data-act]');
+  if (!btn) return;
+  const act = btn.dataset.act;
+  const s = state.sheet;
+  if (!s) return;
+
+  if (act === 'back') {
+    openSheet({ kind:'diaryDay', date: s.date });
+  } else if (act === 'copy') {
+    const d = getSheetData();
+    if (!d) return;
+    if (d.text) {
+      copyToClipboard(d.text);
+      showToast('已复制');
+    }
+  } else if (act === 'edit') {
+    state.sheet.editing = true;
+    initPointDraft();
+    renderSheet();
+    sheetScrollEl.scrollTop = 0;
+    sheetGo('tall');                 // 编辑态直接展开到全高
+    setTimeout(()=>{
+      if (s.kind !== 'point') $('#sheetEditarea')?.focus();
+    }, 340);
+  } else if (act === 'delete') {
+    const d = getSheetData();
+    if (!d) return;
+    let subtitle = d.title || d.text || '';
+    subtitle = subtitle.replace(/\s+/g,' ').trim();
+    if (subtitle.length > 44) subtitle = subtitle.slice(0, 44) + '…';
+    const kindText = ({face:'这条人格核心', point:'这个记忆点', line:'这条记忆线', diaryEntry:'这篇日记'})[s.kind];
+    openConfirm({
+      q: `删除${kindText}？`,
+      subtitle,
+      onOk: () => {
+        performSheetDelete();
+        closeConfirm();
+        showToast('已删除');
+        // 从当天列表进入的日记：删除后回到当天列表（若已删空则关闭）
+        if (s.kind === 'diaryEntry' && s.from === 'day' && diaryOn(s.date).length) {
+          openSheet({ kind:'diaryDay', date: s.date });
+        } else {
+          closeSheet();
+        }
+        renderMain();
+      }
+    });
+  }
+});
+
+// 编辑态 CANCEL：退出编辑（新建则直接关闭）
+$('#sheetCancel').addEventListener('click', ()=>{
+  const s = state.sheet;
+  if (!s) return;
+  if (s.isNew) { closeSheet(); return; }
+  s.editing = false;
+  renderSheet();
+  sheetScrollEl.scrollTop = 0;
+});
+
+// 情绪标签 / 星级选择（事件委托）
+$('#pfChips').addEventListener('click', e=>{
+  const btn = e.target.closest('[data-emo]');
+  const s = state.sheet;
+  if (!btn || !s?.draft) return;
+  const emo = btn.dataset.emo;
+  const i = s.draft.types.indexOf(emo);
+  if (i >= 0) s.draft.types.splice(i, 1);
+  else {
+    if (s.draft.types.length >= 3) { showToast('最多选3个情绪'); return; }
+    s.draft.types.push(emo);
+  }
+  renderPointForm();
+});
+$('#pfStars').addEventListener('click', e=>{
+  const btn = e.target.closest('[data-pf-star]');
+  const s = state.sheet;
+  if (!btn || !s?.draft) return;
+  s.draft.stars = +btn.dataset.pfStar;
+  renderPointForm();
+});
+$('#pfTitle').addEventListener('input', e=>{
+  if (state.sheet?.draft) state.sheet.draft.title = e.target.value;
+});
+
+function performSheetDelete(){
+  const s = state.sheet;
+  if (!s) return;
+  if (s.kind === 'face') state.faces = state.faces.filter(x=>x.id!==s.id);
+  else if (s.kind === 'point') state.points = state.points.filter(x=>x.id!==s.id);
+  else if (s.kind === 'diaryEntry') state.diary = state.diary.filter(x=>x.id!==s.id);
+  else if (s.kind === 'line') {
+    if (s.group === 'recent') state.recent = state.recent.filter(x=>x.id!==s.id);
+    else state.core = state.core.filter(x=>x.id!==s.id);
+  }
+}
+
+$('#sheetClose').addEventListener('click', closeSheet);
+// 弹窗回显列表点击：当天日记 → 单篇
+$('#sheetEcho').addEventListener('click', e=>{
+  const dEntry = e.target.closest('[data-diary-id]');
+  if (dEntry) {
+    const s = state.sheet;
+    openSheet({ kind:'diaryEntry', id: dEntry.dataset.diaryId, from:'day', date: s?.date });
+  }
+});
+$('#sheetWrap').addEventListener('click', e=>{
+  if (e.target === $('#sheetWrap')) closeSheet();
+});
+
+$('#sheetSaveBtn').addEventListener('click', ()=>{
+  const s = state.sheet;
+  if (!s) return;
+  const v = $('#sheetEditarea').value.trim();
+  if (!v) { showToast('内容不能为空'); return; }
+
+  if (s.kind === 'face') {
+    if (s.isNew) {
+      const id = 'f' + Date.now();
+      state.faces.push({ id, text:v });
+      s.id = id;
+    } else {
+      const f = state.faces.find(x=>x.id===s.id);
+      if (f) f.text = v;
+    }
+  } else if (s.kind === 'point') {
+    const draft = s.draft || { title:'', types:[], stars:3 };
+    const title = ($('#pfTitle').value || '').trim() || '（次日自动生成）';
+    if (s.isNew) {
+      const id = 'p' + Date.now();
+      const no = nextPointNo();
+      const now = new Date();
+      state.points.unshift({
+        id,
+        no,
+        title,
+        d:`${now.getFullYear()}-${pad2(now.getMonth()+1)}-${pad2(now.getDate())}`,
+        time:`${MONTHS[now.getMonth()]} ${pad2(now.getDate())} · ${pad2(now.getHours())}:${pad2(now.getMinutes())}`,
+        stars: draft.stars,
+        types: [...draft.types],
+        text: v
+      });
+      s.id = id;
+      s.savedNo = no;
+    } else {
+      const p = state.points.find(x=>x.id===s.id);
+      if (p) {
+        p.text = v;
+        p.title = title;
+        p.stars = draft.stars;
+        p.types = [...draft.types];
+      }
+    }
+  } else if (s.kind === 'line') {
+    const list = s.group === 'recent' ? state.recent : state.core;
+    const l = list.find(x=>x.id===s.id);
+    if (l) l.title = v;
+  } else if (s.kind === 'diaryEntry') {
+    const en = state.diary.find(x=>x.id===s.id);
+    if (en) en.text = v;
+  }
+
+  // 保存后回到当前弹窗的回显态，弹窗保留
+  s.isNew = false;
+  s.editing = false;
+  renderMain();
+  renderSheet();
+  sheetScrollEl.scrollTop = 0;
+  showToast(s.savedNo ? `已保存 · ${s.savedNo}` : '已保存');
+  delete s.savedNo;
+});
+
+/* ================= Confirm ================= */
+function openConfirm(cfg){
+  lockBody();
+  state.confirm = cfg;
+  $('#confirmQ').textContent = cfg.q || '删除这条内容？';
+  $('#confirmT').textContent = cfg.subtitle || '';
+  $('#confirmT').hidden = !cfg.subtitle;
+  const ok = $('#confirmOk');
+  ok.textContent = cfg.okText || 'DELETE';
+  ok.classList.toggle('danger', cfg.danger !== false);
+  ok.classList.toggle('ok', cfg.danger === false);
+  $('#confirmWrap').classList.add('on');
+}
+function closeConfirm(){
+  if (state.confirm) unlockBody();
+  state.confirm = null;
+  $('#confirmWrap').classList.remove('on');
+}
+$('#confirmCancel').addEventListener('click', closeConfirm);
+$('#confirmOk').addEventListener('click', ()=>{
+  const c = state.confirm;
+  if (c?.onOk) c.onOk();
+  else closeConfirm();
+});
+$('#confirmWrap').addEventListener('click', e=>{
+  if (e.target === $('#confirmWrap')) closeConfirm();
+});
+
+/* ================= Calendar picker ================= */
+function openCalendar(){
+  const f = state.filter;
+  const now = new Date();
+  let y = now.getFullYear(), m = now.getMonth();
+  if (f.dateMode === 'range' && f.start) {
+    const [sy, sm] = f.start.split('-');
+    y = +sy; m = +sm - 1;
+  }
+  state.cal = {
+    y, m,
+    start: f.dateMode === 'range' ? f.start : null,
+    end:   f.dateMode === 'range' ? f.end   : null,
+    mode:  f.dateMode,
+  };
+  lockBody();
+  renderCalendar();
+  $('#calWrap').classList.add('on');
+}
+function closeCalendar(){
+  if (state.cal) unlockBody();
+  state.cal = null;
+  $('#calWrap').classList.remove('on');
+}
+/* 经期开始 / 结束：复用日历弹窗，单日选择，默认今天 */
+function openPeriodPicker(purpose){
+  const t = todayIso();
+  const [y, m] = t.split('-');
+  state.cal = { y:+y, m:+m-1, start:t, end:t, mode:'range', purpose };
+  lockBody();
+  renderCalendar();
+  $('#calWrap').classList.add('on');
+}
+function renderCalendar(){
+  const c = state.cal;
+  if (!c) return;
+  $('#calTitle').textContent = `${MONTHS[c.m]} ${c.y}`;
+  const first = new Date(c.y, c.m, 1).getDay();
+  const days = new Date(c.y, c.m + 1, 0).getDate();
+  const cells = [];
+  for (let i = 0; i < first; i++) cells.push('<i></i>');
+  for (let d = 1; d <= days; d++) {
+    const iso = `${c.y}-${pad2(c.m+1)}-${pad2(d)}`;
+    const isEdge = iso === c.start || iso === c.end;
+    const inRange = c.start && c.end && iso > c.start && iso < c.end;
+    cells.push(`<button class="tap ${isEdge?'edge':''} ${inRange?'in':''}" data-day="${iso}">${d}</button>`);
+  }
+  $('#calGrid').innerHTML = cells.join('');
+  const period = String(c.purpose || '').startsWith('period');
+  $('#calPurpose').hidden = !period;
+  if (period) $('#calPurpose').textContent = c.purpose === 'periodEnd' ? '选择经期最后一天' : '选择经期第一天';
+  $('.cal-presets').style.display = period ? 'none' : '';
+  $$('.cal-presets button').forEach(b=>{
+    b.classList.toggle('on', !c.start && c.mode === b.dataset.preset);
+  });
+  $$('#calGrid [data-day]').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      const iso = b.dataset.day;
+      if (period) { c.start = iso; c.end = iso; }
+      else if (!c.start || (c.start && c.end)) { c.start = iso; c.end = null; }
+      else if (iso >= c.start) { c.end = iso; }
+      else { c.start = iso; c.end = null; }
+      c.mode = 'range';
+      renderCalendar();
+    });
+  });
+}
+$('#calPrev').addEventListener('click', ()=>{
+  const c = state.cal; if (!c) return;
+  c.m--; if (c.m < 0) { c.m = 11; c.y--; }
+  renderCalendar();
+});
+$('#calNext').addEventListener('click', ()=>{
+  const c = state.cal; if (!c) return;
+  c.m++; if (c.m > 11) { c.m = 0; c.y++; }
+  renderCalendar();
+});
+$$('.cal-presets button').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    const c = state.cal; if (!c) return;
+    c.mode = b.dataset.preset;   // 'month' | 'all'
+    c.start = null; c.end = null;
+    renderCalendar();
+  });
+});
+$('#calCancel').addEventListener('click', closeCalendar);
+$('#calSave').addEventListener('click', ()=>{
+  const c = state.cal; if (!c) return;
+  if (c.purpose === 'periodStart') {
+    const start = c.start || todayIso();
+    const diff = Math.floor((Date.parse(todayIso()) - Date.parse(start)) / 86400000);
+    state.her.phase = '经期';
+    state.her.day = Math.max(1, diff + 1);
+    closeCalendar();
+    renderMain();
+    showToast('已标记经期开始');
+    return;
+  }
+  if (c.purpose === 'periodEnd') {
+    state.her.phase = '卵泡期';
+    closeCalendar();
+    renderMain();
+    showToast('已标记经期结束');
+    return;
+  }
+  const f = state.filter;
+  if (c.start) {
+    f.dateMode = 'range';
+    f.start = c.start;
+    f.end = c.end || c.start;
+  } else {
+    f.dateMode = c.mode === 'all' ? 'all' : 'month';
+    f.start = f.end = null;
+  }
+  closeCalendar();
+  renderMain();
+});
+$('#calWrap').addEventListener('click', e=>{
+  if (e.target === $('#calWrap')) closeCalendar();
+});
+
+/* ================= Boot ================= */
+renderMain();
+
+/* Prevent overscroll bounce on iOS while sheets are open */
+document.addEventListener('touchmove', e=>{
+  const sheetOpen = $('#sheetWrap').classList.contains('on') ||
+                    $('#confirmWrap').classList.contains('on') ||
+                    $('#calWrap').classList.contains('on');
+  if (sheetOpen && e.target.closest('.sheet, .confirm-sheet, .cal-sheet') === null) {
+    e.preventDefault();
+  }
+}, {passive:false});
+</script>
+</body>
+</html>
